@@ -4058,9 +4058,38 @@ public class CHandler {
 		} else {
 			throw new UnsupportedOperationException("non-standard case of pointer arithmetic");
 		}
+		
+		
+		
 		final RValue rval = new RValue(expr, typeOfResult, false, false);
-		builder.setLrValue(rval);
+		
 
+
+		// TODO: backtranslation to bitvec here. This should be more modular.
+		if (lType.isArithmeticType() && rType.isArithmeticType() &&
+				(lType.isFloatingType() || rType.isFloatingType())) {
+			
+			// TODO: duplicate in StandardFunctionHandler
+			Expression[] arguments = new Expression[1];
+			arguments[0] = rval.getValue();
+			final CPrimitive cType = new CPrimitive(CPrimitives.FLOAT);
+			final AuxVarInfo auxvarinfo = mAuxVarInfoBuilder.constructAuxVarInfo(loc, cType, SFO.AUXVAR.NONDET);
+			builder.addDeclaration(auxvarinfo.getVarDec());
+			builder.addAuxVar(auxvarinfo);
+			final CallStatement call = StatementFactory.constructCallStatement(
+					loc,
+					false, new VariableLHS[] {auxvarinfo.getLhs()},
+					"float_to_bitvec32",
+					arguments);
+			builder.addStatement(call);
+			builder.setLrValue(new RValue(auxvarinfo.getExp(), new CPrimitive(CPrimitives.FLOAT)));
+
+			
+			// builder.setLrValue(rval);
+		} else {
+			builder.setLrValue(rval);
+		}
+		
 		final ExpressionResult intermediateResult;
 		if (left instanceof StringLiteralResult) {
 			assert lhs == null : "unforseen case";
@@ -4431,17 +4460,42 @@ public class CHandler {
 				left.getLrValue().getValue(), typeOfResult, right.getLrValue().getValue(), typeOfResult);
 		final RValue rval = new RValue(expr, typeOfResult, false, false);
 
+		if (lType.isArithmeticType() && rType.isArithmeticType() &&
+				(lType.isFloatingType() || rType.isFloatingType())) {
+			
+			// TODO: duplicate in StandardFunctionHandler
+			Expression[] arguments = new Expression[1];
+			arguments[0] = rval.getValue();
+			final CPrimitive cType = new CPrimitive(CPrimitives.FLOAT);
+			final AuxVarInfo auxvarinfo = mAuxVarInfoBuilder.constructAuxVarInfo(loc, cType, SFO.AUXVAR.NONDET);
+			result.addDeclaration(auxvarinfo.getVarDec());
+			result.addAuxVar(auxvarinfo);
+			final CallStatement call = StatementFactory.constructCallStatement(
+					loc,
+					false, new VariableLHS[] {auxvarinfo.getLhs()},
+					"float_to_bitvec32",
+					arguments);
+			result.addStatement(call);
+			result.setLrValue(new RValue(auxvarinfo.getExp(), new CPrimitive(CPrimitives.FLOAT)));
+
+			
+			// builder.setLrValue(rval);
+		} else {
+			result.setLrValue(rval);
+		}
+		
+		
 		switch (op) {
 		case IASTBinaryExpression.op_multiply:
 		case IASTBinaryExpression.op_divide:
 		case IASTBinaryExpression.op_modulo: {
 			assert lhs == null : "no assignment";
-			return result.setLrValue(rval).build();
+			return result.build();
 		}
 		case IASTBinaryExpression.op_multiplyAssign:
 		case IASTBinaryExpression.op_divideAssign:
 		case IASTBinaryExpression.op_moduloAssign: {
-			return makeAssignment(loc, lhs, Collections.emptyList(), result.setLrValue(rval).build(), hook);
+			return makeAssignment(loc, lhs, Collections.emptyList(), result.build(), hook);
 		}
 		default:
 			throw new AssertionError("no multiplicative " + op);
