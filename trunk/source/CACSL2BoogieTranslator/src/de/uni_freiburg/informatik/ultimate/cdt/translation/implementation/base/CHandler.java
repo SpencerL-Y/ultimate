@@ -4079,7 +4079,7 @@ public class CHandler {
 			final CallStatement call = StatementFactory.constructCallStatement(
 					loc,
 					false, new VariableLHS[] {auxvarinfo.getLhs()},
-					"float_to_bitvec32",
+					"float_to_bitvec"  + Integer.toString(mTypeSizes.getFloatingPointSize(cType).getBitSize()),
 					arguments);
 			builder.addStatement(call);
 			builder.setLrValue(new RValue(auxvarinfo.getExp(), new CPrimitive(CPrimitives.FLOAT)));
@@ -4473,7 +4473,7 @@ public class CHandler {
 			final CallStatement call = StatementFactory.constructCallStatement(
 					loc,
 					false, new VariableLHS[] {auxvarinfo.getLhs()},
-					"float_to_bitvec32",
+					"float_to_bitvec"  + Integer.toString(mTypeSizes.getFloatingPointSize(cType).getBitSize()),
 					arguments);
 			result.addStatement(call);
 			result.setLrValue(new RValue(auxvarinfo.getExp(), new CPrimitive(CPrimitives.FLOAT)));
