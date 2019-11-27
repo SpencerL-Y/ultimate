@@ -10,10 +10,6 @@ void __VERIFIER_assert(int cond) { if (!(cond)) { ERROR: __VERIFIER_error(); } r
 
 int main(void)
 {
-	float f = 1.0f;
-	float g = -0.1f;
-	f = copysign(f, g);
-	__VERIFIER_assert(f == -1.0f);
-
-    return 0;
+	float f = 1.0f + 1.0f;
+	return 0;
 }
