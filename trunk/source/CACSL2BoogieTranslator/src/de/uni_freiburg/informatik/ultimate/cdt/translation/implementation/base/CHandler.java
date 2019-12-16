@@ -3999,14 +3999,17 @@ public class CHandler {
 			left = newOps.getFirst();
 			right = newOps.getSecond();
 			builder = new ExpressionResultBuilder().addAllExceptLrValue(left, right);
-			typeOfResult = ((CPrimitive) left.getLrValue().getCType()).setIsSmtFloat(true);
+			
+			typeOfResult = ((CPrimitive) left.getLrValue().getCType()).getSMTVariant();
 			// TODO: Do we need this?
 			// assert typeOfResult.equals(right.getLrValue().getCType());
 
 			addIntegerBoundsCheck(loc, builder, (CPrimitive) typeOfResult, op, hook, left.getLrValue().getValue(),
 					right.getLrValue().getValue());
+			
+			// TODO: Don't use type of result here wtf
 			expr = mExpressionTranslation.constructArithmeticExpression(loc, op, left.getLrValue().getValue(),
-					(CPrimitive) typeOfResult, right.getLrValue().getValue(), (CPrimitive) typeOfResult);
+					(CPrimitive) lType, right.getLrValue().getValue(), (CPrimitive) rType);
 		} else if (lType instanceof CPointer && rType.isArithmeticType()) {
 			typeOfResult = left.getLrValue().getCType();
 			final CType pointsToType = ((CPointer) typeOfResult).getPointsToType();
@@ -4068,8 +4071,7 @@ public class CHandler {
 
 			// TODO: near-duplicate in ExpressionResultTransformer
 			final Expression[] arguments = new Expression[] { rval.getValue() };
-			final CPrimitive cType = (CPrimitive) rval.getCType();
-			assert cType.isSmtFloat() : "not an SMT float";
+			final CPrimitive cType = ((CPrimitive) rval.getCType()).getBvVaraint();
 			final AuxVarInfo auxvarinfo = mAuxVarInfoBuilder.constructAuxVarInfo(loc, cType, SFO.AUXVAR.NONDET);
 			builder.addDeclaration(auxvarinfo.getVarDec());
 			builder.addAuxVar(auxvarinfo);
@@ -4078,7 +4080,7 @@ public class CHandler {
 							"float_to_bitvec" + Integer.toString(mTypeSizes.getFloatingPointSize(cType).getBitSize()),
 							arguments);
 			builder.addStatement(call);
-			builder.setLrValue(new RValue(auxvarinfo.getExp(), cType.setIsSmtFloat(false)));
+			builder.setLrValue(new RValue(auxvarinfo.getExp(), cType));
 		} else {
 			builder.setLrValue(rval);
 		}
@@ -4467,7 +4469,7 @@ public class CHandler {
 							"float_to_bitvec" + Integer.toString(mTypeSizes.getFloatingPointSize(cType).getBitSize()),
 							arguments);
 			builder.addStatement(call);
-			builder.setLrValue(new RValue(auxvarinfo.getExp(), cType.setIsSmtFloat(false)));
+			builder.setLrValue(new RValue(auxvarinfo.getExp(), cType.getFloatCounterpart()));
 		} else {
 			builder.setLrValue(rval);
 		}
