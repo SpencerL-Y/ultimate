@@ -48,12 +48,17 @@ public class UltimateAPIServlet extends HttpServlet{
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		mLogger.logDebug("Connection from " + request.getRemoteAddr() + ", POST: " + request.getRequestURI()
-				+ " Reading All Request Parameters");
+				+ " start processPOSTRequest.");
 		processPOSTRequest(request, response);
 	}
 
 	/**
-	 * Handles POST requests sent to the API.
+	 * Initiate processing of a "POST" api request.
+	 * 
+	 *  * Fetch content of the api request
+	 *  * Prepare the response, 
+	 *  * Delegate the handling of the response to processAPIRequest
+	 * 
 	 * @param request
 	 * @param response
 	 * @throws IOException
@@ -71,11 +76,18 @@ public class UltimateAPIServlet extends HttpServlet{
 		processAPIRequest(internalRequest, responseWriter);
 	}
 
+	/**
+	 * Try to get and write a result for the API call via handleAPIAction.
+	 * Handle errors for malformed API calls.
+	 * 
+	 * @param internalRequest
+	 * @param responseWriter
+	 */
 	private void processAPIRequest(Request internalRequest, PrintWriter responseWriter) {
 		try {
 			JSONObject jsonResult = new JSONObject();
 			if (internalRequest.getParameterList().containsKey("action")) {
-				jsonResult = handleAPIAction(internalRequest);
+				jsonResult = initiateUltimateRun(internalRequest);
 			} else {
 				jsonResult.put("error", "Invalid request: Missing `action` parameter.");
 			}
@@ -93,12 +105,20 @@ public class UltimateAPIServlet extends HttpServlet{
 		}
 	}
 
-	private JSONObject handleAPIAction(Request internalRequest) throws JSONException {
+	/**
+	 * Initiate a ultimate run for the request.
+	 * Return the results as a json object.
+	 * 
+	 * @param internalRequest
+	 * @return
+	 * @throws JSONException
+	 */
+	private JSONObject initiateUltimateRun(Request internalRequest) throws JSONException {
 		try {
 			final String action = internalRequest.getSingleParameter("action");
 			if (action.equals("execute")) {
 				final UltimateAPIExecutor executor = new UltimateAPIExecutor(internalRequest.getLogger());
-				return executor.executeUltimate(internalRequest);
+				return executor.executeUltimateRunRequest(internalRequest);
 			} else {
 				internalRequest.getLogger().logDebug("Don't know how to handle action: " + action);
 				final JSONObject json = new JSONObject();

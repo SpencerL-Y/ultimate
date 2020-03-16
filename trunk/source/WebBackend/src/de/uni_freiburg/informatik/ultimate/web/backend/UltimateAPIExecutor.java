@@ -7,20 +7,37 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.osgi.service.datalocation.Location;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.PluginFactory;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.SettingsManager;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.UltimateCore.UltimateJobChangeAdapter;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
+import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
+import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
+import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
-public class UltimateAPIExecutor {
+public class UltimateAPIExecutor implements IUltimatePlugin {
 	private final ServletLogger mLogger;
 	private static final long TIMEOUT = 24 * 60 * 60 * 1000;
 	private File mInputFile;
 	private File mToolchainFile;
 	private File mSettingsFile;
+	private UltimateBackendCore mUltimateBackendCore;
 	public static final boolean DEBUG = !false;
 
 	public UltimateAPIExecutor(final ServletLogger logger) {
@@ -33,11 +50,11 @@ public class UltimateAPIExecutor {
 	 * @return Ultimate run results to be processed by the web-frontend.
 	 * @throws JSONException
 	 */
-	public JSONObject executeUltimate(final Request internalRequest) throws JSONException {
+	public JSONObject executeUltimateRunRequest(final Request internalRequest) throws JSONException {
 		mLogger.log("Start executing Ultimate for RequestId: " + internalRequest.getRequestId());
 		JSONObject jsonResult = new JSONObject();
 		
-		// Prepare temporary files.
+		// Prepare {input, toolchain, settings} as temporary files.
 		try {
 			final String timestamp = CoreUtil.getCurrentDateTimeAsString();
 			setInputFile(internalRequest, timestamp);
@@ -56,6 +73,7 @@ public class UltimateAPIExecutor {
 			return jsonResult;
 		}
 		
+		// Append user settings to the temporary settings file.
 		try {
 			applyUserSettings(internalRequest);
 		} catch (IOException e) {
@@ -65,7 +83,7 @@ public class UltimateAPIExecutor {
 		// run ultimate
 		// TODO: Allow timeout to be set in the API request.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
-		if (runUltimate(jsonResult, timeout)) {
+		if (runUltimateViaBackendController(jsonResult, timeout)) {
 			mLogger.log("Finished executing Ultimate.");
 		} else {
 			mLogger.log("Ultimate terminated abnormally.");
@@ -107,6 +125,24 @@ public class UltimateAPIExecutor {
 		final String ultimate_settings_epf = internalRequest.getSingleParameter("ultimate_settings_epf");
 		mSettingsFile = writeTemporaryFile(timestamp + "_settings", ultimate_settings_epf, ".epf");
 	}
+	
+	/**
+	 * Run a ultimate session via UltimateWebController. Add the results to the json object to be used as API response.
+	 * @param json
+	 * @param timeout
+	 * @return
+	 * @throws JSONException
+	 */
+	private boolean runUltimateViaBackendController(final JSONObject json, final long timeout) throws JSONException {
+		mLogger.log("Init UltimateBackendCore");
+		mUltimateBackendCore = new UltimateBackendCore();
+		
+		mLogger.log("Init UltimateBackendController");
+		UltimateBackendController mUltimateBackendController = new UltimateBackendController();
+		mUltimateBackendController.init(mUltimateBackendCore);
+		
+		return true;
+	}
 
 	/**
 	 * Run a ultimate session via UltimateWebController. Add the results to the json object to be used as API response.
@@ -118,6 +154,7 @@ public class UltimateAPIExecutor {
 	private boolean runUltimate(final JSONObject json, final long timeout) throws JSONException {
 		try {
 			mLogger.log("Starting Ultimate ...");
+			final UltimateBackendController ubc = new UltimateBackendController(); 
 			final UltimateWebController uwc =
 					new UltimateWebController(mLogger, mSettingsFile, mInputFile, mToolchainFile, timeout);
 			uwc.runUltimate(json);
@@ -199,5 +236,20 @@ public class UltimateAPIExecutor {
 			mLogger.log("Could not fetch user settings: " + e.getMessage());
 		}
 		
+	}
+
+	@Override
+	public String getPluginName() {
+		return Activator.PLUGIN_NAME;
+	}
+
+	@Override
+	public String getPluginID() {
+		return Activator.PLUGIN_ID;
+	}
+
+	@Override
+	public IPreferenceInitializer getPreferences() {
+		return null;
 	}
 }
