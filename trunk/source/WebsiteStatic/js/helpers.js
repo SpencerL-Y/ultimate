@@ -19,14 +19,15 @@ function tool_config_key_value_exists(key, value) {
 
 /**
  * Fetch window.location URL parameters
- * @returns {{ui: *, tool: *}}
+ * @returns {{ui: *, tool: *, session: *}}
  */
 function get_url_params() {
   let url = new URL(window.location);
 
   return {
     "ui": url.searchParams.get("ui"),
-    "tool": url.searchParams.get("tool")
+    "tool": url.searchParams.get("tool"),
+    "session": url.searchParams.get("session")
   };
 }
 
@@ -40,4 +41,33 @@ function get_current_language() {
     result = _CONFIG.context.current_worker.language;
   }
   return result
+}
+
+
+/**
+ * Compress an array into URI save string.
+ * @param array_to_compress
+ * @returns {string}
+ */
+function URICompressArray(array_to_compress) {
+  return JSONCrush(JSON.stringify(array_to_compress));
+}
+
+
+/**
+ * Decompress a string compressed with URICompressArray back into an array.
+ * !string_to_decompress has to be retrieved with URL.searchParams or decodeURIComponent should be applied.
+ * @param string_to_decompress
+ */
+function URIDecompressArray(string_to_decompress) {
+  return JSON.parse(JSONUncrush(string_to_decompress));
+}
+
+/**
+ * Copy the content of an input field to the users clipboard.
+ * @param input_element
+ */
+function copy_to_clipboard(input_element) {
+  input_element.select();
+  document.execCommand('copy');
 }

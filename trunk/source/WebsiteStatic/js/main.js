@@ -41,6 +41,9 @@ function load_tool_interface(tool_id) {
   init_interface_controls();
   refresh_navbar();
   set_message_orientation(_CONFIG.context.msg_orientation);
+  if (_CONFIG.context.url.session !== null) {
+    load_user_provided_session(_CONFIG.context.url.session);
+  }
 }
 
 
@@ -69,6 +72,18 @@ function set_context() {
   const url_params = get_url_params();
   let tool = {};
 
+  // Load session if provided.
+  if (url_params.session !== null){
+    try {
+      url_params.session = URIDecompressArray(url_params.session);
+      url_params.tool = url_params.session.tool;
+      url_params.ui = 'int';
+    } catch (e) {
+      alert('could not load Session provided. Malformed Link.');
+      console.log(e);
+    }
+  }
+
   // Redirect non existing tools to home page.
   if (!tool_config_key_value_exists("id", url_params.tool)) {
     url_params.ui = "home";
@@ -90,9 +105,7 @@ function set_context() {
 
 
 function load_available_code_examples() {
-  $.getJSON("./config/code_examples/code_examples.json", function (data) {
-    _CONFIG.code_examples = data;
-  });
+  return $.getJSON("./config/code_examples/code_examples.json");
 }
 
 
@@ -107,8 +120,10 @@ function bootstrap() {
   switch (_CONFIG.context.url.ui) {
     case "int":
       // load the interactive mode for the active tool.
-      load_available_code_examples();
-      load_tool_interface(_CONFIG.context.tool.id);
+      load_available_code_examples().always(function (json) {
+        _CONFIG.code_examples = json;
+        load_tool_interface(_CONFIG.context.tool.id);
+      });
       break;
     case "tool":
       // load the tool info page.

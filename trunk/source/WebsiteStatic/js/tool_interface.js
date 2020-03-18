@@ -54,6 +54,78 @@ function clear_editor() {
 
 
 /**
+ * Create a link which can recreate the current session.
+ * Open a modal to display the result to the user.
+ */
+function create_persistence_link() {
+  let modal = $('#persistence_link_modal');
+  let link_input = $('#persistence_link_input');
+
+  modal.modal('show');
+  link_input.val(window.location.origin + window.location.pathname
+      + '?session=' + URICompressArray(get_user_session_settings()));
+
+  $('#copy_persistence_link_to_clipboard').on({
+    click: function() {
+      copy_to_clipboard(link_input);
+    }
+  });
+}
+
+
+/**
+ * Create session object of current frontend state.
+ * To be consumed by `load_user_provided_session(user_session_settings)` to recreate the session.
+ * @returns {{code: *, frontend_settings: *, language: *, worker: *, tool: *}}
+ */
+function get_user_session_settings() {
+  let user_frontend_settings = get_user_frontend_settings();
+  // Reduce the size of the frontend settings object to only necessary info needed for recreation.
+  user_frontend_settings = user_frontend_settings.map(function (setting) {
+        return {
+          "id": setting.id,
+          "type": setting.type,
+          "checked": setting.checked
+        }
+  });
+
+  return {
+    "tool": _CONFIG.context.tool.id,
+    "worker": _CONFIG.context.current_worker.id,
+    "language": _CONFIG.context.current_worker.language,
+    "frontend_settings": user_frontend_settings,
+    "code": _EDITOR.getValue()
+  }
+}
+
+
+/**
+ * Synchronize the user definable frontend settings
+ * with an array of setting objects as returned by get_user_frontend_settings.
+ * @param frontend_settings
+ */
+function set_user_frontend_settings(frontend_settings) {
+  frontend_settings.forEach(function (setting) {
+    // Todo: implement range, int, ...
+    if (setting.type === 'bool') {
+      $('#' + setting.id).prop('checked', setting.checked);
+    }
+  });
+}
+
+
+/**
+ * Recreates a session.
+ * @param user_session_settings
+ */
+function load_user_provided_session(user_session_settings) {
+  choose_language(user_session_settings.language);
+  _EDITOR.session.setValue(user_session_settings.code);
+  refresh_navbar();
+  set_user_frontend_settings(user_session_settings.frontend_settings);
+}
+
+/**
  * Bind the user control buttons to process events.
  */
 function init_interface_controls () {
@@ -104,6 +176,13 @@ function init_interface_controls () {
           set_message_orientation("left");
           break;
       }
+    }
+  });
+
+  // Let the user create a sharable link encoding the current session.
+  $('#create_persistence_link').on({
+    click: function() {
+      create_persistence_link();
     }
   });
 }
@@ -286,6 +365,21 @@ function run_ultimate_task(settings) {
 
 
 /**
+ * Get current state of the user defined settings as a list of setting objects.
+ * @returns {[]}
+ */
+function get_user_frontend_settings() {
+  let result = [];
+  _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
+    // TODO: implement int, float, ... settings.
+    setting["checked"] = $('#' + setting.id).is(':checked');
+    result.push(setting);
+  });
+
+  return result
+}
+
+/**
  * Get the current settings Dict to be used as a new job for ultimate.
  * @returns {{user_settings: {}, code: string, action: string, toolchain: {task_id: *, id: *}}}
  */
@@ -303,12 +397,7 @@ function get_execute_settings() {
     ultimate_toolchain_xml: (new XMLSerializer()).serializeToString(_CONFIG.context.current_worker.ultimate_toolchain_xml)
   };
 
-  let user_settings = [];
-  _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
-    // TODO: implement int, float, ... settings.
-    setting["checked"] = $('#' + setting.id).is(':checked');
-    user_settings.push(setting);
-  });
+  const user_settings = get_user_frontend_settings();
   settings.user_settings = JSON.stringify({user_settings});
 
   return settings;
@@ -416,9 +505,14 @@ function set_available_code_samples(worker_id) {
   let samples_menu = $('#code_sample_dropdown_menu');
   let example_entries = '';
 
-  _CONFIG.code_examples[worker_id].forEach(function (example) {
-      example_entries += '<a class="dropdown-item sample-selection" href="#" data-source="' +  example.source + '">' + example.name + '</a>';
-  });
+  try {
+    _CONFIG.code_examples[worker_id].forEach(function (example) {
+        example_entries += '<a class="dropdown-item sample-selection" href="#" data-source="' +  example.source + '">' + example.name + '</a>';
+    });
+  } catch (e) {
+    console.log('Could set code examples:');
+    console.log(e);
+  }
 
   if (example_entries.length > 0) {
     $('#navbar_sample_select_dropdown').removeClass('hidden');
