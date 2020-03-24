@@ -50,7 +50,7 @@ function get_current_language() {
  * @returns {string}
  */
 function URICompressArray(array_to_compress) {
-  return JSONCrush(JSON.stringify(array_to_compress));
+  return LZString.compressToEncodedURIComponent(JSON.stringify(array_to_compress));
 }
 
 
@@ -60,7 +60,7 @@ function URICompressArray(array_to_compress) {
  * @param string_to_decompress
  */
 function URIDecompressArray(string_to_decompress) {
-  return JSON.parse(JSONUncrush(string_to_decompress));
+  return JSON.parse(LZString.decompressFromEncodedURIComponent(string_to_decompress));
 }
 
 /**
