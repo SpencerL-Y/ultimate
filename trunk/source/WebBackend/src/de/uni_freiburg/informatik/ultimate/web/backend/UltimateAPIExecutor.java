@@ -20,10 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.PluginFactory;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.SettingsManager;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.UltimateCore.UltimateJobChangeAdapter;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
 import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
@@ -32,6 +29,7 @@ import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
 public class UltimateAPIExecutor implements IUltimatePlugin {
+	
 	private final ServletLogger mLogger;
 	private static final long TIMEOUT = 24 * 60 * 60 * 1000;
 	private File mInputFile;
@@ -83,7 +81,7 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 		// run ultimate
 		// TODO: Allow timeout to be set in the API request.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
-		if (runUltimateViaBackendController(jsonResult, timeout)) {
+		if (runUltimate(jsonResult, timeout)) {
 			mLogger.log("Finished executing Ultimate.");
 		} else {
 			mLogger.log("Ultimate terminated abnormally.");
@@ -127,7 +125,7 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 	}
 	
 	/**
-	 * Run a ultimate session via UltimateWebController. Add the results to the json object to be used as API response.
+	 * Run a ultimate session via runUltimateViaBackendController. Add the results to the json object to be used as API response.
 	 * @param json
 	 * @param timeout
 	 * @return
@@ -154,7 +152,6 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 	private boolean runUltimate(final JSONObject json, final long timeout) throws JSONException {
 		try {
 			mLogger.log("Starting Ultimate ...");
-			final UltimateBackendController ubc = new UltimateBackendController(); 
 			final UltimateWebController uwc =
 					new UltimateWebController(mLogger, mSettingsFile, mInputFile, mToolchainFile, timeout);
 			uwc.runUltimate(json);

@@ -65,7 +65,9 @@ public class UltimateAPIServlet extends HttpServlet{
 	 */
 	private void processPOSTRequest(HttpServletRequest request, HttpServletResponse response) 
 		throws IOException{
+		mLogger.logDebug("Initiate session logger");
 		final ServletLogger sessionLogger = new ServletLogger(this, request.getSession().getId(), DEBUG);
+		mLogger.logDebug("Initiate internal request.");
 		final Request internalRequest = new Request(request, sessionLogger);
 		
 		// Prepare the response to be a JSON response.
@@ -73,11 +75,12 @@ public class UltimateAPIServlet extends HttpServlet{
 		response.setCharacterEncoding("UTF-8");
 		
 		final PrintWriter responseWriter = response.getWriter();
+		mLogger.logDebug("Process API request.");
 		processAPIRequest(internalRequest, responseWriter);
 	}
 
 	/**
-	 * Try to get and write a result for the API call via handleAPIAction.
+	 * Pass the Request to initiateUltimateRun, write results to responseWriter.
 	 * Handle errors for malformed API calls.
 	 * 
 	 * @param internalRequest
@@ -87,6 +90,7 @@ public class UltimateAPIServlet extends HttpServlet{
 		try {
 			JSONObject jsonResult = new JSONObject();
 			if (internalRequest.getParameterList().containsKey("action")) {
+				mLogger.logDebug("Initiate ultimate run for request: " + internalRequest.toString());
 				jsonResult = initiateUltimateRun(internalRequest);
 			} else {
 				jsonResult.put("error", "Invalid request: Missing `action` parameter.");
