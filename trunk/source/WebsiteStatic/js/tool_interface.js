@@ -60,14 +60,26 @@ function clear_editor() {
 function create_persistence_link() {
   let modal = $('#persistence_link_modal');
   let link_input = $('#persistence_link_input');
+  let link_input_small = $('#persistence_link_small_input');
 
   modal.modal('show');
+  let session_data = get_user_session_settings();
   link_input.val(window.location.origin + window.location.pathname
-      + '?session=' + URICompressArray(get_user_session_settings()));
+      + '?session=' + URICompressArray(session_data));
+
+  delete session_data.code;
+  link_input_small.val(window.location.origin + window.location.pathname
+      + '?session=' + URICompressArray(session_data));
 
   $('#copy_persistence_link_to_clipboard').on({
     click: function() {
       copy_to_clipboard(link_input);
+    }
+  });
+
+  $('#copy_persistence_link_small_to_clipboard').on({
+    click: function() {
+      copy_to_clipboard(link_input_small);
     }
   });
 }
@@ -76,7 +88,7 @@ function create_persistence_link() {
 /**
  * Create session object of current frontend state.
  * To be consumed by `load_user_provided_session(user_session_settings)` to recreate the session.
- * @returns {{code: *, frontend_settings: *, language: *, worker: *, tool: *}}
+ * @returns {{code: *, frontend_settings: *, language: *, worker: *, tool: *, sample_source: *}}
  */
 function get_user_session_settings() {
   let user_frontend_settings = get_user_frontend_settings();
@@ -94,6 +106,7 @@ function get_user_session_settings() {
     "worker": _CONFIG.context.current_worker.id,
     "language": _CONFIG.context.current_worker.language,
     "frontend_settings": user_frontend_settings,
+    "sample_source": _CONFIG.context.sample_source,
     "code": _EDITOR.getValue()
   }
 }
@@ -120,9 +133,14 @@ function set_user_frontend_settings(frontend_settings) {
  */
 function load_user_provided_session(user_session_settings) {
   choose_language(user_session_settings.language);
-  _EDITOR.session.setValue(user_session_settings.code);
+  if ('code' in user_session_settings) {
+      _EDITOR.session.setValue(user_session_settings.code);
+  }
   refresh_navbar();
   set_user_frontend_settings(user_session_settings.frontend_settings);
+  if (!('code' in user_session_settings)) {
+      load_sample(user_session_settings.sample_source);
+  }
 }
 
 /**
@@ -534,6 +552,7 @@ function load_sample(source) {
   $.get('config/code_examples/' + source, function (data) {
     clear_messages();
     _EDITOR.session.setValue(data);
+    _CONFIG.context.sample_source = source;
   })
 }
 

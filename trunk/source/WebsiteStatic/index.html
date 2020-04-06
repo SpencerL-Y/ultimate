@@ -96,6 +96,7 @@
           </button>
         </div>
         <div class="modal-body">
+          <h4>All settings and code.</h4>
           <div class="input-group mb-3">
               <input id="persistence_link_input" type="text" class="form-control"  aria-label="Session link" readonly>
             <div class="input-group-append">
@@ -106,6 +107,20 @@
               </button>
             </div>
           </div>
+          <p>Use this link if you want to preserve all your code and changes to settings.</p>
+          <h4>Only settings and code sample.</h4>
+          <div class="input-group mb-3">
+              <input id="persistence_link_small_input" type="text" class="form-control"  aria-label="Session link" readonly>
+            <div class="input-group-append">
+              <button id="copy_persistence_link_small_to_clipboard"
+                      class="btn btn-outline-secondary" type="button"
+                      data-toggle="tooltip" data-placement="top" title="Click to copy link to clipboard.">
+                Copy
+              </button>
+            </div>
+          </div>
+          <p>This link is shorter and includes only settings and the used code example. Changes to the code will be
+            lost.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
