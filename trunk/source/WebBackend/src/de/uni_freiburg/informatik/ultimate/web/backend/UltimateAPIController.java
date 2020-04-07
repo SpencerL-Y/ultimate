@@ -10,6 +10,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -28,77 +31,172 @@ import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
 import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
+import de.uni_freiburg.informatik.ultimate.core.model.IController;
 import de.uni_freiburg.informatik.ultimate.core.model.ICore;
+import de.uni_freiburg.informatik.ultimate.core.model.ISource;
+import de.uni_freiburg.informatik.ultimate.core.model.ITool;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchain;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
+import de.uni_freiburg.informatik.ultimate.core.model.results.IResult;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
-public class UltimateAPIExecutor implements IUltimatePlugin {
+public class UltimateAPIController implements IUltimatePlugin, IController<RunDefinition> {
 	
 	private final ServletLogger mLogger;
-	private static final long TIMEOUT = 24 * 60 * 60 * 1000;
+	private static final long TIMEOUT = 15 * 1000;
 	private File mInputFile;
 	private File mToolchainFile;
 	private File mSettingsFile;
+	private Request mRequest;
+	private JSONObject mResult;
 	public static final boolean DEBUG = !false;
 
-	public UltimateAPIExecutor(final ServletLogger logger) {
-		mLogger = logger;
+	public UltimateAPIController(final Request request, JSONObject result) {
+		mLogger = request.getLogger();
+		mRequest = request;
+		mResult = result;
+	}
+	
+	public void run() {
+		// TODO: Allow timeout to be set in the API request.
+		final long timeout = Math.min(TIMEOUT, TIMEOUT);
+		try {
+			mLogger.log("Starting Ultimate ...");
+			final UltimateWebController uwc =
+					new UltimateWebController(mLogger, mSettingsFile, mInputFile, mToolchainFile, timeout);
+			uwc.runUltimate(mResult);
+		} catch (final Throwable t) {
+			mLogger.log("Failed to run Ultimate.");
+			try {
+				mResult.put("error", "Failed to run ULTIMATE: " + t.getMessage());
+			} catch (JSONException e) {
+				if (DEBUG) {
+					e.printStackTrace();
+				}
+			}
+		} finally {
+			postProcessTemporaryFiles();
+		}
 	}
 
 	/**
 	 * Trigger an ultimate run based on an API request. Returns the results in the JSONobject.
-	 * @param internalRequest
 	 * @return Ultimate run results to be processed by the web-frontend.
 	 * @throws JSONException
 	 */
-	public JSONObject executeUltimateRunRequest(final Request internalRequest) throws JSONException {
-		mLogger.log("Start executing Ultimate for RequestId: " + internalRequest.getRequestId());
+	public JSONObject executeUltimateRunRequest() throws JSONException {
 		JSONObject jsonResult = new JSONObject();
-		
+		return jsonResult;
+	}
+
+	/******************* Ultimate Plugin Implementation *****************/
+	
+	@Override
+	public String getPluginName() {
+		return Activator.PLUGIN_NAME;
+	}
+
+	@Override
+	public String getPluginID() {
+		return Activator.PLUGIN_ID;
+	}
+
+	@Override
+	public IPreferenceInitializer getPreferences() {
+		return null;
+	}
+	
+	/**************** End Ultimate Plugin Implementation *****************/
+	
+	/**************** IController Implementation *****************/
+
+	@Override
+	public int init(ICore<RunDefinition> core) {
 		// Prepare {input, toolchain, settings} as temporary files.
+		mLogger.log("Prepare input files for RequestId: " + mRequest.getRequestId());
 		try {
 			final String timestamp = CoreUtil.getCurrentDateTimeAsString();
-			setInputFile(internalRequest, timestamp);
-			setToolchainFile(internalRequest, timestamp);
-			setSettingsFile(internalRequest, timestamp);
+			setInputFile(mRequest, timestamp);
+			setToolchainFile(mRequest, timestamp);
+			setSettingsFile(mRequest, timestamp);
 			mLogger.log("Written temporary files to " + mInputFile.getParent() + " with timestamp " + timestamp);
 		} catch (IOException e) {
-			jsonResult = new JSONObject();
-			jsonResult.put("error", "Internal server error: IO");
+			try {
+				mResult.put("error", "Internal server error: IO");
+			} catch (JSONException eJson) {
+				if(DEBUG) {					
+					eJson.printStackTrace();
+				}
+			}
 			mLogger.log("Internal server error: " + e.getClass().getSimpleName());
 			mLogger.logDebug(e.toString());
 
 			if (DEBUG) {				
 				e.printStackTrace();
 			}
-			return jsonResult;
+			return -1;
 		}
 		
 		// Append user settings to the temporary settings file.
 		try {
-			applyUserSettings(internalRequest);
+			applyUserSettings(mRequest);
 		} catch (IOException e) {
+			try {
+				mResult.put("error", "Internal server error: Malformed user settings.");
+			} catch (JSONException eJson) {
+				if(DEBUG) {					
+					eJson.printStackTrace();
+				}
+			}
 			mLogger.log("Could not apply user settings: " + e.getMessage());
+			return -1;
 		}
-		
-		// run ultimate
-		// TODO: Allow timeout to be set in the API request.
-		final long timeout = Math.min(TIMEOUT, TIMEOUT);
-		if (runUltimate(jsonResult, timeout)) {
-			mLogger.log("Finished executing Ultimate.");
-		} else {
-			mLogger.log("Ultimate terminated abnormally.");
-		}
-
-		return jsonResult;
+		return 0;
 	}
 
+	@Override
+	public ISource selectParser(Collection<ISource> parser) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IToolchainData<RunDefinition> selectTools(List<ITool> tools) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> selectModel(List<String> modelNames) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IToolchainData<RunDefinition> prerun(IToolchainData<RunDefinition> tcData) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void displayToolchainResults(IToolchainData<RunDefinition> toolchain, Map<String, List<IResult>> results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void displayException(IToolchainData<RunDefinition> toolchain, String description, Throwable ex) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**************** End IController Implementation *****************/
+	
 	/**
 	 * Set the temporary ultimate input file. As set by the web-frontend user in the editor.
 	 * @param internalRequest
@@ -131,30 +229,6 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 	private void setSettingsFile(Request internalRequest, String timestamp) throws IOException {
 		final String ultimate_settings_epf = internalRequest.getSingleParameter("ultimate_settings_epf");
 		mSettingsFile = writeTemporaryFile(timestamp + "_settings", ultimate_settings_epf, ".epf");
-	}
-
-
-	/**
-	 * Run a ultimate session via UltimateWebController. Add the results to the json object to be used as API response.
-	 * @param json
-	 * @param timeout
-	 * @return
-	 * @throws JSONException
-	 */
-	private boolean runUltimate(final JSONObject json, final long timeout) throws JSONException {
-		try {
-			mLogger.log("Starting Ultimate ...");
-			final UltimateWebController uwc =
-					new UltimateWebController(mLogger, mSettingsFile, mInputFile, mToolchainFile, timeout);
-			uwc.runUltimate(json);
-		} catch (final Throwable t) {
-			mLogger.log("Failed to run Ultimate.");
-			json.put("error", "Failed to run ULTIMATE: " + t.getMessage());
-			return false;
-		} finally {
-			postProcessTemporaryFiles();
-		}
-		return true;
 	}
 
 	/**
@@ -225,21 +299,6 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 			mLogger.log("Could not fetch user settings: " + e.getMessage());
 		}
 		
-	}
-
-	@Override
-	public String getPluginName() {
-		return Activator.PLUGIN_NAME;
-	}
-
-	@Override
-	public String getPluginID() {
-		return Activator.PLUGIN_ID;
-	}
-
-	@Override
-	public IPreferenceInitializer getPreferences() {
-		return null;
 	}
 
 }

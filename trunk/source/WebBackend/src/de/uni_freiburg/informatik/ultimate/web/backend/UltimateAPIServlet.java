@@ -1,5 +1,7 @@
 package de.uni_freiburg.informatik.ultimate.web.backend;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -7,12 +9,23 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
 
+import org.eclipse.core.runtime.IStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xml.sax.SAXException;
+
+import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
+import de.uni_freiburg.informatik.ultimate.core.model.ICore;
+import de.uni_freiburg.informatik.ultimate.core.model.IToolchain;
+import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
+import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
+import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
+import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
 
 
-public class UltimateAPIServlet extends HttpServlet{
+public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefinition> {
 	/**
 	 * 
 	 */
@@ -104,8 +117,15 @@ public class UltimateAPIServlet extends HttpServlet{
 		try {
 			final String action = internalRequest.getSingleParameter("action");
 			if (action.equals("execute")) {
-				final UltimateAPIExecutor executor = new UltimateAPIExecutor(internalRequest.getLogger());
-				return executor.executeUltimateRunRequest(internalRequest);
+				final JSONObject json = new JSONObject();
+				final UltimateAPIController controller = new UltimateAPIController(internalRequest, json);				
+				
+				int status = controller.init(this);
+				if (status == 0) {
+					controller.run();
+				}
+				
+				return json;
 			} else {
 				internalRequest.getLogger().logDebug("Don't know how to handle action: " + action);
 				final JSONObject json = new JSONObject();
@@ -118,4 +138,81 @@ public class UltimateAPIServlet extends HttpServlet{
 			return json;
 		}
 	}
+
+	/***************************** ICore Implementation *********************/
+	
+	@Override
+	public IToolchainData<RunDefinition> createToolchainData(String filename)
+			throws FileNotFoundException, JAXBException, SAXException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IToolchainData<RunDefinition> createToolchainData() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IToolchain<RunDefinition> requestToolchain(File[] inputFiles) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void releaseToolchain(IToolchain<RunDefinition> toolchain) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void savePreferences(String absolutePath) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void loadPreferences(String absolutePath, boolean silent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resetPreferences(boolean silent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public IUltimatePlugin[] getRegisteredUltimatePlugins() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getRegisteredUltimatePluginIDs() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ILoggingService getCoreLoggingService() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IPreferenceProvider getPreferenceProvider(String pluginId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getUltimateVersionString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	/************************* End ICore Implementation *********************/
 }
