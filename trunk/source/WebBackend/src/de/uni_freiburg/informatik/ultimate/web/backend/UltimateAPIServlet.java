@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,31 +14,44 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.osgi.service.datalocation.Location;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xml.sax.SAXException;
 
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.PluginFactory;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.SettingsManager;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.UltimateCore.UltimateJobChangeAdapter;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
 import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
+import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.ToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.ICore;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchain;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
+import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
+import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
+import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
 
-public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefinition> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Whether the API should be executed in Debug-Mode or not.
-	 */
-	private static final boolean DEBUG = !false;
+public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefinition>, IUltimatePlugin {
 	
+	private static final long serialVersionUID = 1L;
+	private static final boolean DEBUG = !false;
 	private final ServletLogger mLogger;
+	private ToolchainManager mToolchainManager;
+	private ToolchainStorage mCoreStorage;
+	private SettingsManager mSettingsManager;
+	private PluginFactory mPluginFactory;
+	private ILoggingService mLoggingService;
 	
 	/**
 	 * Constructor.
@@ -46,6 +61,11 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	public UltimateAPIServlet() {
 		super();
 		mLogger = new ServletLogger(this, "Servlet", DEBUG);
+		mCoreStorage = new ToolchainStorage();
+		mLoggingService = mCoreStorage.getLoggingService();
+		mSettingsManager = new SettingsManager(mLogger);
+		mSettingsManager.registerPlugin(this);
+		mPluginFactory = new PluginFactory(mSettingsManager, mLogger);
 	}
 	
 	/**
@@ -119,8 +139,8 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 			if (action.equals("execute")) {
 				final JSONObject json = new JSONObject();
 				final UltimateAPIController controller = new UltimateAPIController(internalRequest, json);				
-				
 				int status = controller.init(this);
+				mToolchainManager = new ToolchainManager(mLoggingService, mPluginFactory, controller);
 				if (status == 0) {
 					controller.run();
 				}
@@ -144,8 +164,12 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	@Override
 	public IToolchainData<RunDefinition> createToolchainData(String filename)
 			throws FileNotFoundException, JAXBException, SAXException {
-		// TODO Auto-generated method stub
-		return null;
+		if (!new File(filename).exists()) {
+			throw new FileNotFoundException("The specified toolchain file " + filename + " was not found");
+		}
+
+		final ToolchainStorage tcStorage = new ToolchainStorage();
+		return new ToolchainData(filename, tcStorage, tcStorage);
 	}
 
 	@Override
@@ -156,8 +180,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 
 	@Override
 	public IToolchain<RunDefinition> requestToolchain(File[] inputFiles) {
-		// TODO Auto-generated method stub
-		return null;
+		return mToolchainManager.requestToolchain(inputFiles);
 	}
 
 	@Override
@@ -215,4 +238,24 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	}
 	
 	/************************* End ICore Implementation *********************/
+	
+	/************************* IUltimatePlugin Implementation *********************/
+
+	@Override
+	public String getPluginName() {
+		return Activator.PLUGIN_NAME;
+	}
+
+	@Override
+	public String getPluginID() {
+		return Activator.PLUGIN_ID;
+	}
+
+	@Override
+	public IPreferenceInitializer getPreferences() {
+		return null;
+	}
+	
+	/************************* End IUltimatePlugin Implementation *********************/
+	
 }

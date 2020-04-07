@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
@@ -30,6 +31,7 @@ import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
+import de.uni_freiburg.informatik.ultimate.core.coreplugin.toolchain.DefaultToolchainJob;
 import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
 import de.uni_freiburg.informatik.ultimate.core.model.IController;
 import de.uni_freiburg.informatik.ultimate.core.model.ICore;
@@ -43,6 +45,7 @@ import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferencePro
 import de.uni_freiburg.informatik.ultimate.core.model.results.IResult;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
+import de.uni_freiburg.informatik.ultimate.core.model.services.IUltimateServiceProvider;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
 public class UltimateAPIController implements IUltimatePlugin, IController<RunDefinition> {
@@ -54,6 +57,8 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	private File mSettingsFile;
 	private Request mRequest;
 	private JSONObject mResult;
+	private ICore<RunDefinition> mCore;
+	private IUltimateServiceProvider mCurrentServices;
 	public static final boolean DEBUG = !false;
 
 	public UltimateAPIController(final Request request, JSONObject result) {
@@ -66,10 +71,13 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		// TODO: Allow timeout to be set in the API request.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
 		try {
-			mLogger.log("Starting Ultimate ...");
-			final UltimateWebController uwc =
-					new UltimateWebController(mLogger, mSettingsFile, mInputFile, mToolchainFile, timeout);
-			uwc.runUltimate(mResult);
+			mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
+			DefaultToolchainJob job = new DefaultToolchainJob(
+					"Toolchain for request " + mRequest.getRequestId(), mCore, this, mLogger, new File[] { mInputFile });
+			job.schedule();
+			job.join();
+			
+			UltimateResultProcessor.processUltimateResults(mLogger, mCurrentServices, mResult);
 		} catch (final Throwable t) {
 			mLogger.log("Failed to run Ultimate.");
 			try {
@@ -82,16 +90,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		} finally {
 			postProcessTemporaryFiles();
 		}
-	}
-
-	/**
-	 * Trigger an ultimate run based on an API request. Returns the results in the JSONobject.
-	 * @return Ultimate run results to be processed by the web-frontend.
-	 * @throws JSONException
-	 */
-	public JSONObject executeUltimateRunRequest() throws JSONException {
-		JSONObject jsonResult = new JSONObject();
-		return jsonResult;
 	}
 
 	/******************* Ultimate Plugin Implementation *****************/
@@ -117,6 +115,12 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 	@Override
 	public int init(ICore<RunDefinition> core) {
+		if (core == null) {
+			return -1;
+		}
+		
+		mCore = core;
+		
 		// Prepare {input, toolchain, settings} as temporary files.
 		mLogger.log("Prepare input files for RequestId: " + mRequest.getRequestId());
 		try {
@@ -156,6 +160,9 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 			mLogger.log("Could not apply user settings: " + e.getMessage());
 			return -1;
 		}
+		
+		core.resetPreferences(false);
+		
 		return 0;
 	}
 
@@ -167,8 +174,14 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 	@Override
 	public IToolchainData<RunDefinition> selectTools(List<ITool> tools) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			final IToolchainData<RunDefinition> tc = mCore.createToolchainData(mToolchainFile.getAbsolutePath());
+			mCurrentServices = tc.getServices();
+			return tc;
+		} catch (FileNotFoundException | JAXBException | SAXException e) {
+			mLogger.error("Exception during tool selection: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+			return null;
+		}
 	}
 
 	@Override
@@ -179,8 +192,7 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 	@Override
 	public IToolchainData<RunDefinition> prerun(IToolchainData<RunDefinition> tcData) {
-		// TODO Auto-generated method stub
-		return null;
+		return tcData;
 	}
 
 	@Override

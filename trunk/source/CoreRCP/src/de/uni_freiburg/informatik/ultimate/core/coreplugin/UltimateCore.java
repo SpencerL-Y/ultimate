@@ -385,7 +385,7 @@ public class UltimateCore implements IApplication, ICore<RunDefinition>, IUltima
 		return mCoreStorage.getPreferenceProvider(pluginId);
 	}
 
-	private static final class UltimateJobChangeAdapter extends JobChangeAdapter {
+	public static final class UltimateJobChangeAdapter extends JobChangeAdapter {
 		private final ILogger mLogger;
 
 		private UltimateJobChangeAdapter(final ILogger logger) {
