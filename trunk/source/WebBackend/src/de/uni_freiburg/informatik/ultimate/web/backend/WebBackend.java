@@ -31,7 +31,7 @@ public class WebBackend implements IApplication {
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		Config.load();
-
+		
 		initJettyServer();
 
 		mJettyServer.start();
@@ -58,7 +58,7 @@ public class WebBackend implements IApplication {
 		mJettyServer.setHandler(contexts);
 
 		// Serve the website (front-end) as static content.
-		if (Config.SERVE_WEBSITE) {			
+		if (Config.SERVE_WEBSITE) {
 			addStaticPathToContext(contexts, Paths.get(Config.FRONTEND_PATH), Config.FRONTEND_ROUTE);
 		}
 

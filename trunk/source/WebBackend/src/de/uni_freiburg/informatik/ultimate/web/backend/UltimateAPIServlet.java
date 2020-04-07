@@ -47,30 +47,13 @@ public class UltimateAPIServlet extends HttpServlet{
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
-		mLogger.logDebug("Connection from " + request.getRemoteAddr() + ", POST: " + request.getRequestURI()
-				+ " start processPOSTRequest.");
-		processPOSTRequest(request, response);
-	}
-
-	/**
-	 * Initiate processing of a "POST" api request.
-	 * 
-	 *  * Fetch content of the api request
-	 *  * Prepare the response, 
-	 *  * Delegate the handling of the response to processAPIRequest
-	 * 
-	 * @param request
-	 * @param response
-	 * @throws IOException
-	 */
-	private void processPOSTRequest(HttpServletRequest request, HttpServletResponse response) 
-		throws IOException{
-		mLogger.logDebug("Initiate session logger");
+		mLogger.logDebug("Connection from " + request.getRemoteAddr() + ", POST: " + request.getRequestURI());
+		mLogger.logDebug("Init session logger");
 		final ServletLogger sessionLogger = new ServletLogger(this, request.getSession().getId(), DEBUG);
-		mLogger.logDebug("Initiate internal request.");
+		mLogger.logDebug("Init internal request.");
 		final Request internalRequest = new Request(request, sessionLogger);
 		
-		// Prepare the response to be a JSON response.
+		// Set response type to JSON.
 		response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
 		
@@ -80,8 +63,8 @@ public class UltimateAPIServlet extends HttpServlet{
 	}
 
 	/**
-	 * Pass the Request to initiateUltimateRun, write results to responseWriter.
-	 * Handle errors for malformed API calls.
+	 * Pass the Request to initiateUltimateRun.
+	 * Write results to responseWriter.
 	 * 
 	 * @param internalRequest
 	 * @param responseWriter
@@ -110,7 +93,7 @@ public class UltimateAPIServlet extends HttpServlet{
 	}
 
 	/**
-	 * Initiate a ultimate run for the request.
+	 * Initiate ultimate run for the request.
 	 * Return the results as a json object.
 	 * 
 	 * @param internalRequest

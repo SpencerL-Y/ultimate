@@ -2,6 +2,7 @@ package de.uni_freiburg.informatik.ultimate.web.backend;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,6 +12,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import javax.xml.bind.JAXBException;
+
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
@@ -18,14 +21,21 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xml.sax.SAXException;
 
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
+import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
+import de.uni_freiburg.informatik.ultimate.core.model.ICore;
+import de.uni_freiburg.informatik.ultimate.core.model.IToolchain;
+import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
+import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
+import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
 public class UltimateAPIExecutor implements IUltimatePlugin {
@@ -35,7 +45,6 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 	private File mInputFile;
 	private File mToolchainFile;
 	private File mSettingsFile;
-	private UltimateBackendCore mUltimateBackendCore;
 	public static final boolean DEBUG = !false;
 
 	public UltimateAPIExecutor(final ServletLogger logger) {
@@ -123,24 +132,7 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 		final String ultimate_settings_epf = internalRequest.getSingleParameter("ultimate_settings_epf");
 		mSettingsFile = writeTemporaryFile(timestamp + "_settings", ultimate_settings_epf, ".epf");
 	}
-	
-	/**
-	 * Run a ultimate session via runUltimateViaBackendController. Add the results to the json object to be used as API response.
-	 * @param json
-	 * @param timeout
-	 * @return
-	 * @throws JSONException
-	 */
-	private boolean runUltimateViaBackendController(final JSONObject json, final long timeout) throws JSONException {
-		mLogger.log("Init UltimateBackendCore");
-		mUltimateBackendCore = new UltimateBackendCore();
-		
-		mLogger.log("Init UltimateBackendController");
-		UltimateBackendController mUltimateBackendController = new UltimateBackendController();
-		mUltimateBackendController.init(mUltimateBackendCore);
-		
-		return true;
-	}
+
 
 	/**
 	 * Run a ultimate session via UltimateWebController. Add the results to the json object to be used as API response.
@@ -249,4 +241,5 @@ public class UltimateAPIExecutor implements IUltimatePlugin {
 	public IPreferenceInitializer getPreferences() {
 		return null;
 	}
+
 }
