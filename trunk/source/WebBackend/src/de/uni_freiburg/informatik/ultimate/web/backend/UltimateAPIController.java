@@ -71,7 +71,8 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		// TODO: Allow timeout to be set in the API request.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
 		try {
-			mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
+			// TODO: Implement settings loading.
+			// mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
 			DefaultToolchainJob job = new DefaultToolchainJob(
 					"Toolchain for request " + mRequest.getRequestId(), mCore, this, mLogger, new File[] { mInputFile });
 			job.schedule();

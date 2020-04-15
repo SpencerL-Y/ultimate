@@ -144,7 +144,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 				if (status == 0) {
 					controller.run();
 				}
-				
+
 				return json;
 			} else {
 				internalRequest.getLogger().logDebug("Don't know how to handle action: " + action);
@@ -174,7 +174,6 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 
 	@Override
 	public IToolchainData<RunDefinition> createToolchainData() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -185,55 +184,46 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 
 	@Override
 	public void releaseToolchain(IToolchain<RunDefinition> toolchain) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void savePreferences(String absolutePath) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void loadPreferences(String absolutePath, boolean silent) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void resetPreferences(boolean silent) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public IUltimatePlugin[] getRegisteredUltimatePlugins() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String[] getRegisteredUltimatePluginIDs() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public ILoggingService getCoreLoggingService() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public IPreferenceProvider getPreferenceProvider(String pluginId) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getUltimateVersionString() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	
