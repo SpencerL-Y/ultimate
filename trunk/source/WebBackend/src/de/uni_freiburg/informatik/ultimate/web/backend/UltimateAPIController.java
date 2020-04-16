@@ -73,12 +73,11 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		try {
 			// TODO: Implement settings loading.
 			// mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
-			DefaultToolchainJob job = new DefaultToolchainJob(
-					"Toolchain for request " + mRequest.getRequestId(), mCore, this, mLogger, new File[] { mInputFile });
+			WebBackendToolchainJob job = new WebBackendToolchainJob(
+					"WebBackendToolchainJob for request " + mRequest.getRequestId(), 
+					mCore, this, mLogger, new File[] { mInputFile }, mResult);
 			job.schedule();
 			job.join();
-			
-			UltimateResultProcessor.processUltimateResults(mLogger, mCurrentServices, mResult);
 		} catch (final Throwable t) {
 			mLogger.log("Failed to run Ultimate.");
 			try {

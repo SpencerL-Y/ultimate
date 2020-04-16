@@ -144,6 +144,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 				if (status == 0) {
 					controller.run();
 				}
+				mToolchainManager.close();
 
 				return json;
 			} else {
@@ -184,7 +185,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 
 	@Override
 	public void releaseToolchain(IToolchain<RunDefinition> toolchain) {
-		
+		mToolchainManager.releaseToolchain(toolchain);
 	}
 
 	@Override
