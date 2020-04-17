@@ -18,18 +18,19 @@ import de.uni_freiburg.informatik.ultimate.core.model.ICore;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchainProgressMonitor;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchain.ReturnCode;
-import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 
 public class WebBackendToolchainJob extends DefaultToolchainJob {
 
 	private JSONObject mResult;
 	private ServletLogger mLogger;
+	private Request mRequest;
 
 	public WebBackendToolchainJob(String name, ICore<RunDefinition> core, IController<RunDefinition> controller,
-			ServletLogger logger, File[] input, JSONObject result) {
+			ServletLogger logger, File[] input, JSONObject result, Request request) {
 		super(name, core, controller, logger, input);
 		mResult = result;
 		mLogger = logger;
+		mRequest = request;
 	}
 	
 	@Override

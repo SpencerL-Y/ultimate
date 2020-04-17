@@ -68,8 +68,11 @@ Tool specific configurations. For each tool we must provide configuration for it
                     frontend_settings: [  // Frontend settings will be vailable to set by the user
                       {
                         name: "Check for memory leak in main procedure",  // The name in the settings menu.
-                        id: "chck_main_mem_leak",  // Unique id of that setting
-                        type: "bool",  // Type [string] of this setting
+                        id: "chck_main_mem_leak",  // Any unique id of that setting.
+                        // The Activator.PLUGIN_ID of the ultimate plugin.
+                        plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.foo",
+                        key: "the key" // The key as used by the plugin PreferenceInitializer LABEL_
+                        type: "bool",  // Type [string] of this setting must be \in {'bool', }
                         default: true,
                         string: "/instance/de.uni_freiburg.informatik...." // To be used by the ultimate controller
                       },

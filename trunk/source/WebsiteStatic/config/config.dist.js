@@ -31,16 +31,18 @@ const _CONFIG = {
             {
               name: "Check for memory leak in main procedure",
               id: "chck_main_mem_leak",
+              plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+              key: "Check for the main procedure if all allocated memory was freed",
               type: "bool",
-              default: true,
-              string: "/instance/de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator/Check\\ for\\ the\\ main\\ procedure\\ if\\ all\\ allocated\\ memory\\ was\\ freed"
+              default: true
             },
             {
               name: "Check for overflows of signed integers",
               id: "chck_signed_int_overflow",
+              plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+              key: "Check absence of signed integer overflows",
               type: "bool",
-              default: true,
-              string: "/instance/de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator/Check\\ absence\\ of\\ signed\\ integer\\ overflows"
+              default: true
             }
           ]
         },
@@ -52,12 +54,16 @@ const _CONFIG = {
             {
               name: "Check foo",
               id: "chck_foo",
+              plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.foo",
+              key: "foo setting",
               type: "bool",
               default: true
             },
             {
               name: "Check bar",
               id: "chck_bar",
+              plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.bar",
+              key: "bar setting",
               type: "bool",
               default: false
             }

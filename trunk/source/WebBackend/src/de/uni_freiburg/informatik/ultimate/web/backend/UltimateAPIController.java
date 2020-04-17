@@ -32,7 +32,9 @@ import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.toolchain.DefaultToolchainJob;
+import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.PluginType;
 import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
+import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.ToolchainListType;
 import de.uni_freiburg.informatik.ultimate.core.model.IController;
 import de.uni_freiburg.informatik.ultimate.core.model.ICore;
 import de.uni_freiburg.informatik.ultimate.core.model.ISource;
@@ -58,7 +60,7 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	private Request mRequest;
 	private JSONObject mResult;
 	private ICore<RunDefinition> mCore;
-	private IUltimateServiceProvider mCurrentServices;
+	private IUltimateServiceProvider mCurrentServices;  // TODO: remove this here.
 	public static final boolean DEBUG = !false;
 
 	public UltimateAPIController(final Request request, JSONObject result) {
@@ -68,14 +70,14 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	}
 	
 	public void run() {
-		// TODO: Allow timeout to be set in the API request.
+		// TODO: Allow timeout to be set in the API request and use it.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
 		try {
 			// TODO: Implement settings loading.
 			// mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
 			WebBackendToolchainJob job = new WebBackendToolchainJob(
 					"WebBackendToolchainJob for request " + mRequest.getRequestId(), 
-					mCore, this, mLogger, new File[] { mInputFile }, mResult);
+					mCore, this, mLogger, new File[] { mInputFile }, mResult, mRequest);
 			job.schedule();
 			job.join();
 		} catch (final Throwable t) {
@@ -90,6 +92,50 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		} finally {
 			postProcessTemporaryFiles();
 		}
+	}
+	
+
+	private IUltimateServiceProvider addUserSettings(IToolchainData<RunDefinition> tcData) {
+		IUltimateServiceProvider services = tcData.getServices();
+		
+		/* 
+		// Debug: traverse the toolchain to log its content.
+		RunDefinition tcRD = tcData.getRootElement();
+		ToolchainListType tc = tcRD.getToolchain();
+		List<Object> tcPluginOrSubchain = tc.getPluginOrSubchain();
+		for (Object pluginOrSubchain : tcPluginOrSubchain) {
+			mLogger.log(pluginOrSubchain.toString());
+		}
+		*/
+		
+		
+		// Get the user settings from the request
+		try {
+			mLogger.log("Apply user settings to run configuration.");
+			final JSONObject jsonParameter = new JSONObject(mRequest.getSingleParameter("user_settings"));
+			final JSONArray userSettings = jsonParameter.getJSONArray("user_settings");
+
+			for (int i=0; i < userSettings.length(); i++) {
+			    final JSONObject userSetting = userSettings.getJSONObject(i);
+			    // TODO: We need to do here:
+				// 1. Check if the provided PLUGIN_ID is available in the toolchain and therefore we can set values.
+				// 2. If so, check if the provided key is a valid string. (Should be in the plugins PreferenceInitializer)
+				// 3. Check if the provided value is valid. (via type cast?)
+			    // 4. Check if it is needed to pool the plugins and den bulk put the new settings.
+			    switch (userSetting.getString("type")) {
+				case "bool":
+					services.getPreferenceProvider(userSetting.getString("plugin_id")).put(
+							userSetting.getString("key"), userSetting.getBoolean("checked"));
+					break;
+				default:
+					mLogger.log("User setting type " + userSetting.getString("type") + " is unknown. Ignoring");
+				}
+			}
+		} catch (JSONException e) {
+			mLogger.log("Could not fetch user settings: " + e.getMessage());
+		}
+				
+		return services;
 	}
 
 	/******************* Ultimate Plugin Implementation *****************/
@@ -146,21 +192,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 			return -1;
 		}
 		
-		// Append user settings to the temporary settings file.
-		try {
-			applyUserSettings(mRequest);
-		} catch (IOException e) {
-			try {
-				mResult.put("error", "Internal server error: Malformed user settings.");
-			} catch (JSONException eJson) {
-				if(DEBUG) {					
-					eJson.printStackTrace();
-				}
-			}
-			mLogger.log("Could not apply user settings: " + e.getMessage());
-			return -1;
-		}
-		
 		core.resetPreferences(false);
 		
 		return 0;
@@ -168,7 +199,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 	@Override
 	public ISource selectParser(Collection<ISource> parser) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -186,24 +216,21 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 	@Override
 	public List<String> selectModel(List<String> modelNames) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public IToolchainData<RunDefinition> prerun(IToolchainData<RunDefinition> tcData) {
-		return tcData;
+		return tcData.replaceServices(addUserSettings(tcData));
 	}
 
 	@Override
 	public void displayToolchainResults(IToolchainData<RunDefinition> toolchain, Map<String, List<IResult>> results) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void displayException(IToolchainData<RunDefinition> toolchain, String description, Throwable ex) {
-		// TODO Auto-generated method stub
 		
 	}
 	
@@ -279,38 +306,4 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		}
 		return codeFile;
 	}
-
-	/**
-	 * Appends the settings from the web-frontend to the ultimate settings file.
-	 * @param internalRequest
-	 * @throws IOException
-	 */
-	private void applyUserSettings(final Request internalRequest) throws IOException {
-		try {
-			mLogger.log("Apply user settings to run configuration.");
-			final JSONObject jsonParameter = new JSONObject(internalRequest.getSingleParameter("user_settings"));
-			final JSONArray userSettings = jsonParameter.getJSONArray("user_settings");
-			BufferedWriter settingsOutput = new BufferedWriter(new FileWriter(mSettingsFile.getAbsolutePath(), true));
-			
-			settingsOutput.newLine();
-			settingsOutput.write("# User settings from the webfrontend: ");
-			for (int i=0; i < userSettings.length(); i++) {
-			    final JSONObject userSetting = userSettings.getJSONObject(i);
-			    switch (userSetting.getString("type")) {
-				case "bool":
-					settingsOutput.newLine();
-					settingsOutput.write(userSetting.getString("string") + "=" + userSetting.getBoolean("checked"));
-					break;
-				default:
-					mLogger.log("User setting type " + userSetting.getString("type") + " is unknown. Ignoring");
-				}
-			}
-			settingsOutput.newLine();
-			settingsOutput.close();			
-		} catch (JSONException e) {
-			mLogger.log("Could not fetch user settings: " + e.getMessage());
-		}
-		
-	}
-
 }
