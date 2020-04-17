@@ -2,9 +2,7 @@ package de.uni_freiburg.informatik.ultimate.web.backend;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.jetty.server.Server;
@@ -18,7 +16,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.PathResource;
 
-import de.uni_freiburg.informatik.ultimate.core.preferences.RcpPreferenceProvider;
 
 public class WebBackend implements IApplication {
 

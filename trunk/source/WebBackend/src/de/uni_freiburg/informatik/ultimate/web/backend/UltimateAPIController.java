@@ -1,52 +1,33 @@
 package de.uni_freiburg.informatik.ultimate.web.backend;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.osgi.service.datalocation.Location;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xml.sax.SAXException;
 
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.ToolchainManager;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.preferences.CorePreferenceInitializer;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.services.ToolchainStorage;
-import de.uni_freiburg.informatik.ultimate.core.coreplugin.toolchain.DefaultToolchainJob;
-import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.PluginType;
 import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.RunDefinition;
-import de.uni_freiburg.informatik.ultimate.core.lib.toolchain.ToolchainListType;
 import de.uni_freiburg.informatik.ultimate.core.model.IController;
 import de.uni_freiburg.informatik.ultimate.core.model.ICore;
 import de.uni_freiburg.informatik.ultimate.core.model.ISource;
 import de.uni_freiburg.informatik.ultimate.core.model.ITool;
-import de.uni_freiburg.informatik.ultimate.core.model.IToolchain;
 import de.uni_freiburg.informatik.ultimate.core.model.IToolchainData;
 import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
-import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
 import de.uni_freiburg.informatik.ultimate.core.model.results.IResult;
-import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
-import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
 import de.uni_freiburg.informatik.ultimate.core.model.services.IUltimateServiceProvider;
 import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
@@ -60,7 +41,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	private Request mRequest;
 	private JSONObject mResult;
 	private ICore<RunDefinition> mCore;
-	private IUltimateServiceProvider mCurrentServices;  // TODO: remove this here.
 	public static final boolean DEBUG = !false;
 
 	public UltimateAPIController(final Request request, JSONObject result) {
@@ -73,8 +53,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		// TODO: Allow timeout to be set in the API request and use it.
 		final long timeout = Math.min(TIMEOUT, TIMEOUT);
 		try {
-			// TODO: Implement settings loading.
-			// mCore.loadPreferences(mSettingsFile.getAbsolutePath(), false);
 			WebBackendToolchainJob job = new WebBackendToolchainJob(
 					"WebBackendToolchainJob for request " + mRequest.getRequestId(), 
 					mCore, this, mLogger, new File[] { mInputFile }, mResult, mRequest);
@@ -95,6 +73,11 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	}
 	
 
+	/**
+	 * Add user frontend settings to the plugins in the toolchain.
+	 * @param tcData
+	 * @return Updated UltimateServiceProvider
+	 */
 	private IUltimateServiceProvider addUserSettings(IToolchainData<RunDefinition> tcData) {
 		IUltimateServiceProvider services = tcData.getServices();
 		
@@ -173,6 +156,7 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 			final String timestamp = CoreUtil.getCurrentDateTimeAsString();
 			setInputFile(mRequest, timestamp);
 			setToolchainFile(mRequest, timestamp);
+			// TODO: we do not longer use the settings file.
 			setSettingsFile(mRequest, timestamp);
 			mLogger.log("Written temporary files to " + mInputFile.getParent() + " with timestamp " + timestamp);
 		} catch (IOException e) {
@@ -206,7 +190,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 	public IToolchainData<RunDefinition> selectTools(List<ITool> tools) {
 		try {
 			final IToolchainData<RunDefinition> tc = mCore.createToolchainData(mToolchainFile.getAbsolutePath());
-			mCurrentServices = tc.getServices();
 			return tc;
 		} catch (FileNotFoundException | JAXBException | SAXException e) {
 			mLogger.error("Exception during tool selection: " + e.getClass().getSimpleName() + ": " + e.getMessage());
