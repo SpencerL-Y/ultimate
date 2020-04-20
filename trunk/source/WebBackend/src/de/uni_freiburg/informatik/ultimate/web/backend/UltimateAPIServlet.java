@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Dictionary;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -11,8 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import org.eclipse.core.runtime.Platform;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.framework.Bundle;
 import org.xml.sax.SAXException;
 
 import de.uni_freiburg.informatik.ultimate.core.coreplugin.Activator;
@@ -29,6 +32,7 @@ import de.uni_freiburg.informatik.ultimate.core.model.IUltimatePlugin;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceInitializer;
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.IPreferenceProvider;
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILoggingService;
+import de.uni_freiburg.informatik.ultimate.util.CoreUtil;
 
 
 public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefinition>, IUltimatePlugin {
@@ -41,6 +45,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	private SettingsManager mSettingsManager;
 	private PluginFactory mPluginFactory;
 	private ILoggingService mLoggingService;
+	private String mUltimateVersion;
 	
 	/**
 	 * Constructor.
@@ -64,24 +69,48 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		mLogger.logDebug("Connection from " + request.getRemoteAddr() + ", GET: " + request.getQueryString());
+		
+		if (request.getQueryString() != null) {
+			processAPIGetRequest(request, response);
+		}
 	}
-	
+
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		mLogger.logDebug("Connection from " + request.getRemoteAddr() + ", POST: " + request.getRequestURI());
-		mLogger.logDebug("Init session logger");
+		
 		final ServletLogger sessionLogger = new ServletLogger(this, request.getSession().getId(), DEBUG);
-		mLogger.logDebug("Init internal request.");
 		final Request internalRequest = new Request(request, sessionLogger);
 		
-		// Set response type to JSON.
-		response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
+		processAPIPostRequest(internalRequest, response);
+	}
+	
+	
+	private void processAPIGetRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		final PrintWriter responseWriter = prepareJSONResponse(response);
+		final String query = request.getQueryString();
+		JSONObject jsonResult = new JSONObject();
 		
-		final PrintWriter responseWriter = response.getWriter();
-		mLogger.logDebug("Process API request.");
-		processAPIRequest(internalRequest, responseWriter);
+		try {
+			switch (query) {
+			case "version":
+					jsonResult.put("ultimate_version", this.getUltimateVersionString());
+				break;
+			default:
+				jsonResult.put("error", "unknown request.");
+				break;
+			}
+			jsonResult.write(responseWriter);
+		} catch (Exception e) {
+			final String message = "{\"error\" : \"Invalid request: " + e.getMessage() + " \"}";
+			responseWriter.print(message);
+			mLogger.logDebug(message);
+			
+			if (DEBUG) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -91,8 +120,11 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 	 * @param internalRequest
 	 * @param responseWriter
 	 */
-	private void processAPIRequest(Request internalRequest, PrintWriter responseWriter) {
+	private void processAPIPostRequest(Request internalRequest, HttpServletResponse response) throws IOException {
+		final PrintWriter responseWriter = prepareJSONResponse(response);
+		
 		try {
+			mLogger.logDebug("Process API request.");
 			JSONObject jsonResult = new JSONObject();
 			if (internalRequest.getParameterList().containsKey("action")) {
 				mLogger.logDebug("Initiate ultimate run for request: " + internalRequest.toString());
@@ -100,9 +132,7 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 			} else {
 				jsonResult.put("error", "Invalid request: Missing `action` parameter.");
 			}
-
 			jsonResult.write(responseWriter);
-
 		} catch (final JSONException e) {
 			final String message = "{\"error\" : \"Invalid request: " + e.getMessage() + " \"}";
 			responseWriter.print(message);
@@ -112,6 +142,20 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Set response headers for JSON. Return writer.
+	 * @param response
+	 * @return
+	 * @throws IOException
+	 */
+	private PrintWriter prepareJSONResponse(HttpServletResponse response) throws IOException {
+		// Set response type to JSON.
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
+		return response.getWriter();
 	}
 
 	/**
@@ -214,9 +258,26 @@ public class UltimateAPIServlet extends HttpServlet implements ICore<RunDefiniti
 
 	@Override
 	public String getUltimateVersionString() {
-		return null;
+		if (mUltimateVersion == null) {
+			final Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+			if (bundle == null) {
+				return "UNKNOWN";
+			}
+			final Dictionary<String, String> headers = bundle.getHeaders();
+			if (headers == null) {
+				return "UNKNOWN";
+			}
+
+			final String major = headers.get("Bundle-Version");
+			final String gitVersion = CoreUtil.readGitVersion(getClass().getClassLoader());
+			if (gitVersion == null) {
+				return major;
+			}
+			mUltimateVersion = major + "-" + gitVersion;
+		}
+		return mUltimateVersion;
 	}
-	
+
 	/************************* End ICore Implementation *********************/
 	
 	/************************* IUltimatePlugin Implementation *********************/
