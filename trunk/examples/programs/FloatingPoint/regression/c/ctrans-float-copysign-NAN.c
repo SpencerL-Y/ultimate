@@ -10,9 +10,7 @@ void __VERIFIER_assert(int cond) { if (!(cond)) { ERROR: __VERIFIER_error(); } r
 
 int main(void)
 {
-    __VERIFIER_assert(copysign(1.0,2.0) == 1.0);
-    __VERIFIER_assert(copysign(1.0,-2.0) == -1.0);
-    __VERIFIER_assert(copysign(-INFINITY,1.0) == INFINITY);
-    __VERIFIER_assert(copysign(INFINITY,-1.0) == -INFINITY);
+    __VERIFIER_assert(isnan(copysign(NAN,1.0)));
+    __VERIFIER_assert(isnan(copysign(NAN,-1.0)));
     return 0;
 }
