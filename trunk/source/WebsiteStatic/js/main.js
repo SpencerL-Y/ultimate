@@ -59,6 +59,13 @@ function load_tool_interface(tool_id) {
   refresh_navbar();
   load_backend_version();
   set_message_orientation(_CONFIG.context.msg_orientation);
+  if (_CONFIG.context.url.lang !== null) {
+    choose_language(_CONFIG.context.url.lang);
+    refresh_navbar();
+  }
+  if (_CONFIG.context.url.sample !== null) {
+    load_sample(_CONFIG.context.url.sample);
+  }
   if (_CONFIG.context.url.session !== null) {
     load_user_provided_session(_CONFIG.context.url.session);
   }
@@ -117,7 +124,8 @@ function set_context() {
   _CONFIG["context"] = {
     "url": url_params,
     "tool": tool,
-    "msg_orientation": _CONFIG.editor.default_msg_orientation
+    "msg_orientation": _CONFIG.editor.default_msg_orientation,
+    "sample_source": ''
   }
 }
 

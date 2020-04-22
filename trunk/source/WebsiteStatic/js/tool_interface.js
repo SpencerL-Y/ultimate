@@ -69,7 +69,9 @@ function create_persistence_link() {
 
   delete session_data.code;
   link_input_small.val(window.location.origin + window.location.pathname
-      + '?session=' + URICompressArray(session_data));
+      + '?ui=int&tool=' + _CONFIG.context.tool.id + '&lang=' + _CONFIG.context.current_worker.language
+      + '&sample=' + _CONFIG.context.sample_source
+  );
 
   $('#copy_persistence_link_to_clipboard').on({
     click: function() {
