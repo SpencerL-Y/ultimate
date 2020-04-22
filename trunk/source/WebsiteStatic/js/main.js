@@ -31,6 +31,20 @@ function render_tool_page(tool_id) {
 }
 
 
+function load_backend_version() {
+    $.get(_CONFIG.backend.web_bridge_url, "version", function (response) {
+        try {
+            $('#version_info_text').html(
+                "Using ultimate version: " +
+                response.ultimate_version
+            );
+        } catch (e) {
+            console.log("Could not read backend ultimate version.");
+            console.log(e);
+        }
+    });
+}
+
 /**
  * Load the interactive tool interface.
  * @param tool_id
@@ -40,6 +54,7 @@ function load_tool_interface(tool_id) {
   init_editor();
   init_interface_controls();
   refresh_navbar();
+  load_backend_version();
   set_message_orientation(_CONFIG.context.msg_orientation);
   if (_CONFIG.context.url.session !== null) {
     load_user_provided_session(_CONFIG.context.url.session);
