@@ -25,3 +25,19 @@ Set the config-parameter `SERVE_WEBSITE` to `true`. e.g.
 Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" project home folder. e.g.
 
     -DWebBackend.FRONTEND_PATH="/path/to/trunk/source/WebsiteStatic"
+
+# Whitelist for user settings.
+User settings can be allowed per plugin and key.
+
+Create a `whitelist.json`:
+
+```json
+{
+	"plugin.id": ["key_foo", "key_bar"],
+	"de.uni_freiburg.informatik.ultimate.plugins.analysis.syntaxchecker": [
+		"remove filename from checker output"
+	],
+}
+```
+
+Set `-DWebBackend.SETTINGS_WHITELIST="/path/to/your/whitelist.json"`

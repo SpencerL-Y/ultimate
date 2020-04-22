@@ -100,15 +100,20 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 
 			for (int i=0; i < userSettings.length(); i++) {
 			    final JSONObject userSetting = userSettings.getJSONObject(i);
-			    // TODO: We need to do here:
-				// 1. Check if the provided PLUGIN_ID is available in the toolchain and therefore we can set values.
-				// 2. If so, check if the provided key is a valid string. (Should be in the plugins PreferenceInitializer)
-				// 3. Check if the provided value is valid. (via type cast?)
-			    // 4. Check if it is needed to pool the plugins and den bulk put the new settings.
-			    switch (userSetting.getString("type")) {
+			    String pluginId = userSetting.getString("plugin_id");
+			    String key = userSetting.getString("key");
+			    
+			    // Check if the setting is in the white-list.
+				if (Config.USER_SETTINGS_WHITELIST.PluginKeyIsWhitelisted(pluginId, key) == false) {
+					mLogger.log("User setting for plugin=" + pluginId + " key=" + key + " is not in whitelist. Ignoring.");
+					continue;
+				}
+			    
+				// Apply the setting.
+				switch (userSetting.getString("type")) {
 				case "bool":
-					services.getPreferenceProvider(userSetting.getString("plugin_id")).put(
-							userSetting.getString("key"), userSetting.getBoolean("checked"));
+					services.getPreferenceProvider(pluginId).put(
+							key, userSetting.getBoolean("checked"));
 					break;
 				default:
 					mLogger.log("User setting type " + userSetting.getString("type") + " is unknown. Ignoring");

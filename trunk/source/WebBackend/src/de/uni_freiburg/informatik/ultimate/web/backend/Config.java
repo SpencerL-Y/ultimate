@@ -2,7 +2,16 @@ package de.uni_freiburg.informatik.ultimate.web.backend;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 /**
  * WebBackend settings.
@@ -25,6 +34,7 @@ import java.util.Properties;
  * 		--DWebBackend.FRONTEND_PATH="path/to/trunk/source/WebsiteStatic"
  * 		--DWebBackend.FRONTEND_ROUTE="/website"
  * 		--DWebBackend.BACKEND_ROUTE="/api"
+ * 		--DWebBackend.SETTINGS_WHITELIST="/path/to/your/settings_whitelist.json"
  */
 public class Config {
 	public static boolean DEBUG = true;
@@ -33,6 +43,8 @@ public class Config {
 	public static String FRONTEND_PATH = "website_static";
 	public static String FRONTEND_ROUTE = "/website";
 	public static String BACKEND_ROUTE = "/api";
+	public static String SETTINGS_WHITELIST = "settings_whitelist.json.dist";
+	public static UserSettingsWhitelist USER_SETTINGS_WHITELIST;
 	
 	private static Properties appSettings = new Properties();
 	private final static String settingsFile = "web.config.properties";
@@ -74,7 +86,9 @@ public class Config {
 		FRONTEND_PATH = loadString("FRONTEND_PATH", FRONTEND_PATH);
 		FRONTEND_ROUTE = loadString("FRONTEND_ROUTE", FRONTEND_ROUTE);
 		BACKEND_ROUTE = loadString("BACKEND_ROUTE", BACKEND_ROUTE);
+		USER_SETTINGS_WHITELIST = new UserSettingsWhitelist(loadString("SETTINGS_WHITELIST", SETTINGS_WHITELIST));
 	}
+
 
 	/**
 	 * Load the setting string named `propertyName`. 
