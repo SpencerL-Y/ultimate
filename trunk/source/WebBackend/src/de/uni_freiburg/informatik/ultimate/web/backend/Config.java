@@ -43,7 +43,7 @@ public class Config {
 	public static String FRONTEND_PATH = "website_static";
 	public static String FRONTEND_ROUTE = "/website";
 	public static String BACKEND_ROUTE = "/api";
-	public static String SETTINGS_WHITELIST = "settings_whitelist.json.dist";
+	public static String SETTINGS_WHITELIST = "settings_whitelist.json";
 	public static UserSettingsWhitelist USER_SETTINGS_WHITELIST;
 	
 	private static Properties appSettings = new Properties();
