@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: WebBackend
 Bundle-SymbolicName: de.uni_freiburg.informatik.ultimate.web.backend;singleton:=true
-Bundle-Version: 0.1.24
+Bundle-Version: 0.1.25
 Bundle-Activator: de.uni_freiburg.informatik.ultimate.web.backend.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
@@ -13,3 +13,4 @@ Require-Bundle: de.uni_freiburg.informatik.ultimate.lib.util,
  org.eclipse.jetty.util,
  javax.servlet,
  org.eclipse.jetty.servlets
+Export-Package: de.uni_freiburg.informatik.ultimate.web.backend
