@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="UltimateJetty" uid="UltimateJetty" id="de.uni_freiburg.informatik.ultimate.web.backend.UltimateWebBackend" application="de.uni_freiburg.informatik.ultimate.web.backend.WebBackend" version="0.1.25" useFeatures="false" includeLaunchers="true">
+<product name="WebBackend" uid="WebBackend" id="de.uni_freiburg.informatik.ultimate.web.backend.WebBackendProduct" application="de.uni_freiburg.informatik.ultimate.web.backend.WebBackend" version="0.1.25" useFeatures="false" includeLaunchers="true">
 
    <configIni use="default">
    </configIni>
@@ -18,7 +18,7 @@
 
    <windowImages/>
 
-   <launcher>
+   <launcher name="WebBackend">
       <win useIco="false">
          <bmp/>
       </win>

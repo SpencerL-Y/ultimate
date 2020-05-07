@@ -63,8 +63,8 @@
 									<attachId>UltimateEliminator</attachId>
 								</product>
 								<product>
-									<id>UltimateJetty</id>
-									<attachId>UltimateJetty</attachId>
+									<id>WebBackend</id>
+									<attachId>WebBackend</attachId>
 								</product>
 							</products>
 						</configuration>

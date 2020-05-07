@@ -14,15 +14,11 @@
       </application>
    </extension>
    <extension
-         id="UltimateWebBackend"
+         id="WebBackendProduct"
          point="org.eclipse.core.runtime.products">
       <product
             application="de.uni_freiburg.informatik.ultimate.web.backend.WebBackend"
-            name="UltimateJetty">
-         <property
-               name="appName"
-               value="UltimateJetty">
-         </property>
+            name="WebBackend">
       </product>
    </extension>
 
