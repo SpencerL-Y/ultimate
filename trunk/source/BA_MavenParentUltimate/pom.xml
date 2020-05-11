@@ -864,19 +864,13 @@
 		<profile>
 			<id>materialize</id>
 			<modules>
-				<module>../WebInterface</module>
-				<module>../Website</module>
-				<module>../WebUltimateBridge</module>
-
 				<module>../BA_FeatureUltimateDebug</module>
 				<module>../BA_FeatureUltimateCommandLine</module>
 				<module>../BA_FeatureUltimateDeltaDebugger</module>
 				<module>../BA_FeatureDependenciesCommandlineE4</module>
 				<module>../BA_FeatureDependenciesDebugE4</module>
 				<module>../BA_FeatureUltimateCommon</module>
-				<module>../BA_FeatureUltimateWebbridge</module>
 				<module>../BA_SiteRepository</module>
-				<module>../BA_Website</module>
 			</modules>
 		</profile>
 	</profiles>
