@@ -19,6 +19,10 @@
       <product
             application="de.uni_freiburg.informatik.ultimate.web.backend.WebBackend"
             name="WebBackend">
+         <property
+               name="appName"
+               value="WebBackend">
+         </property>
       </product>
    </extension>
 

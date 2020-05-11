@@ -78,7 +78,6 @@
 
    <configurations>
       <plugin id="de.uni_freiburg.informatik.ultimate.web.backend" autoStart="true" startLevel="4" />
-      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
