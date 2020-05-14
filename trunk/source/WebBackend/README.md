@@ -77,8 +77,8 @@ Ensure the path to ``settings_whitelist.json` is set correctly for the `SETTINGS
 After a build, a cleaned, ready to be served Version of the `WebsiteStatic` project can be found in `trunk/source/BA_WebBackend/target/products/WebsiteStatic`.
 
 ### Bundeled with the backend
-* Set the config-parameter `SERVE_WEBSITE` to `True`. e.g.
-* Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" folder. e.g.
+* Set the config-parameter `SERVE_WEBSITE` to `True`.
+* Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" folder.
 * Configure the Website. See `trunk/source/WebsiteStatic/README.md` for details.
 
 ### Stand alone
