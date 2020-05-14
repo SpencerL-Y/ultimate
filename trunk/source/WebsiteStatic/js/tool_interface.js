@@ -560,7 +560,11 @@ function set_available_frontend_settings(language) {
 
   _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
     if (setting.type === "bool") {
-      settings_entries += '<div class="form-check">' +
+      let hidden = 'hidden';
+      if (setting.visible === true) {
+        hidden = '';
+      }
+      settings_entries += '<div class="form-check ' + hidden + '">' +
         '<input type="checkbox" class="form-check-input" id="' + setting.id + '" ' + (setting.default ? "checked" : "") + '>' +
         '<label class="form-check-label" for="' + setting.id + '">' + setting.name + '</label>' +
         '</div>'

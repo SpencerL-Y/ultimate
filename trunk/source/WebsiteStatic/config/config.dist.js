@@ -80,7 +80,9 @@ const _CONFIG = {
               // type: Setting type can be one of ("bool", )
               type: "bool",
               // default: Default state for the setting.
-              default: true
+              default: true,
+              // visible: If true, this setting is exposed to the user.
+              visible: true
             },
             {
               name: "Check for overflows of signed integers",
@@ -88,7 +90,8 @@ const _CONFIG = {
               plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
               key: "Check absence of signed integer overflows",
               type: "bool",
-              default: true
+              default: true,
+              visible: true
             }
           ]
         },
@@ -103,7 +106,8 @@ const _CONFIG = {
               plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.foo",
               key: "foo setting",
               type: "bool",
-              default: true
+              default: true,
+              visible: true
             },
             {
               name: "Check bar",
@@ -111,7 +115,8 @@ const _CONFIG = {
               plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.bar",
               key: "bar setting",
               type: "bool",
-              default: false
+              default: false,
+              visible: true
             }
           ]
         }
