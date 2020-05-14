@@ -63,15 +63,17 @@ public class Config {
 	 */
 	private static void loadSettingsFile() {
 		try {
-			final FileInputStream fileInputStream = new FileInputStream(settingsFile);
+			final String settingsFilePath = loadString("SETTINGS_FILE", settingsFile);
+			System.out.println("Try loading settings file from: " + settingsFilePath);
+			final FileInputStream fileInputStream = new FileInputStream(settingsFilePath);
 			appSettings.load(fileInputStream);
 			fileInputStream.close();
 
 			if (DEBUG) {
-				System.out.println("web.config.properties settings file successfuly loaded.");
+				System.out.println("Settings file successfuly loaded.");
 			}
 		} catch (final IOException e) {
-			System.out.println("Could not load web.config.properties settings file. Skipping.");
+			System.out.println("Could not load settings file. Using defaults.");
 			System.out.println(e.getMessage());
 		}
 	}
@@ -86,6 +88,7 @@ public class Config {
 		FRONTEND_PATH = loadString("FRONTEND_PATH", FRONTEND_PATH);
 		FRONTEND_ROUTE = loadString("FRONTEND_ROUTE", FRONTEND_ROUTE);
 		BACKEND_ROUTE = loadString("BACKEND_ROUTE", BACKEND_ROUTE);
+		SETTINGS_WHITELIST = loadString("SETTINGS_WHITELIST", SETTINGS_WHITELIST);
 		USER_SETTINGS_WHITELIST = new UserSettingsWhitelist(loadString("SETTINGS_WHITELIST", SETTINGS_WHITELIST));
 	}
 

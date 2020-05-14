@@ -1,6 +1,7 @@
 DEBUG=True
 SERVE_WEBSITE=True
 PORT=8080
-FRONTEND_PATH=C:\\path\\to\\trunk\\source\\WebsiteStatic
+FRONTEND_PATH=C:\\path\\to\\WebsiteStatic
+SETTINGS_WHITELIST=C:\\path\\to\\settings_whitelist.json
 FRONTEND_ROUTE=/website
 BACKEND_ROUTE=/api

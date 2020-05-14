@@ -1,0 +1,5 @@
+{
+	"de.uni_freiburg.informatik.ultimate.plugins.analysis.syntaxchecker": [
+		"remove filename from checker output"
+	]
+}

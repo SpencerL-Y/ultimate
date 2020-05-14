@@ -1,5 +1,34 @@
+This WebBackend project is for serving the ultimate tools as a web-service.
+The WebBackend application runs embedded jetty to provide an API for executing ultimate jobs.
+
+# Overview
+
+
+# Deploy
+Goto `trunk/source/BA_WebBackend` run `mvn clean install -P materialize`. 
+After a successful build, the artifacts to run and config the application are in `./target/products` (also  a copy of this README.md).
+
+Now you need to configure the application.
+
 # Configuration.
-See [Config.java](./src/de/uni_freiburg/informatik/ultimate/web/backend/Config.java) for details.
+## Initial configuration.
+First make a copy of the config files:
+
+* Copy `web.config.properties.dist` to `web.config.properties.dist`
+* Copy `settings_whitelist.json.dist` to `settings_whitelist.json`
+
+> Note: Copy the config files to a place outside of the target directory, since they will be lost on rebuild.
+
+Now add the path to your `web.config.properties.dist` to the `WebBackend.ini` file (located in `./target/products/WebBackend/<plattform>/<arch>/`):
+
+Edit:
+```ini
+-DWebBackend.SETTINGS_FILE="C:\path\to\your\web.config.properties"
+
+```
+
+
+See [Config.java](./src/de/uni_freiburg/informatik/ultimate/web/backend/Config.java) for implementation details.
 
 ## Changing the Port
 The default is 8080. To change it, alter the `PORT` config. e.g.

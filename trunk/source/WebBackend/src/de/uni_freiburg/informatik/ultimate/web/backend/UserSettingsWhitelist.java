@@ -62,7 +62,9 @@ public class UserSettingsWhitelist {
 		try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
 			String jsonString = lines.collect(Collectors.joining());
 			mJSONWhitelist = new JSONObject(jsonString);
+			System.out.println("Loaded User settings whitelist.");
         } catch (IOException e) {
+        	System.out.println("Could not load user settings whitelist. Skipping.");
             e.printStackTrace();
         } catch (JSONException e) {
 			e.printStackTrace();
