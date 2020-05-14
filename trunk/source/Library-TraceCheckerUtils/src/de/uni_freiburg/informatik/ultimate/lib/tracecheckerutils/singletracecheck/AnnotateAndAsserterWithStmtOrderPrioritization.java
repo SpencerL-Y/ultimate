@@ -524,6 +524,7 @@ public class AnnotateAndAsserterWithStmtOrderPrioritization extends AnnotateAndA
 		}
 		for (final LinkedHashSet<Integer> partition : partitions) {
 			buildAnnotatedSsaAndAssertTermsWithPriorizedOrder(trace, callPositions, pendingReturnPositions, partition);
+			countCheckSat();
 			sat = mMgdScriptTc.getScript().checkSat();
 			// Report benchmarks
 			mTcbg.reportNewCheckSat();
