@@ -161,8 +161,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 			final String timestamp = CoreUtil.getCurrentDateTimeAsString();
 			setInputFile(mRequest, timestamp);
 			setToolchainFile(mRequest, timestamp);
-			// TODO: we do not longer use the settings file.
-			setSettingsFile(mRequest, timestamp);
 			mLogger.log("Written temporary files to " + mInputFile.getParent() + " with timestamp " + timestamp);
 		} catch (IOException e) {
 			try {
@@ -246,17 +244,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		final String ultimate_toolchain_xml = internalRequest.getSingleParameter("ultimate_toolchain_xml");
 		mToolchainFile = writeTemporaryFile(timestamp + "_toolchain", ultimate_toolchain_xml, ".xml");
 	}
-	
-	/**
-	 * Create temporary settings file as sent by the web-frontend.
-	 * @param internalRequest
-	 * @param timestamp
-	 * @throws IOException
-	 */
-	private void setSettingsFile(Request internalRequest, String timestamp) throws IOException {
-		final String ultimate_settings_epf = internalRequest.getSingleParameter("ultimate_settings_epf");
-		mSettingsFile = writeTemporaryFile(timestamp + "_settings", ultimate_settings_epf, ".epf");
-	}
 
 	/**
 	 * Move the temporary files to the "log dir" (log folder in the temp dir).
@@ -269,9 +256,6 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 		mLogger.log("Moving input, setting and toolchain file to " + logDir.getAbsoluteFile());
 		if (mInputFile != null) {
 			mInputFile.renameTo(new File(logDir, mInputFile.getName()));
-		}
-		if (mSettingsFile != null) {
-			mSettingsFile.renameTo(new File(logDir, mSettingsFile.getName()));
 		}
 		if (mToolchainFile != null) {
 			mToolchainFile.renameTo(new File(logDir, mToolchainFile.getName()));
