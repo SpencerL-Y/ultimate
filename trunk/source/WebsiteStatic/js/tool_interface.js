@@ -99,7 +99,7 @@ function get_user_session_settings() {
         return {
           "id": setting.id,
           "type": setting.type,
-          "checked": setting.checked
+          "value": setting.value
         }
   });
 
@@ -123,7 +123,7 @@ function set_user_frontend_settings(frontend_settings) {
   frontend_settings.forEach(function (setting) {
     // Todo: implement range, int, ...
     if (setting.type === 'bool') {
-      $('#' + setting.id).prop('checked', setting.checked);
+      $('#' + setting.id).prop('checked', setting.value);
     }
   });
 }
@@ -392,7 +392,7 @@ function get_user_frontend_settings() {
   let result = [];
   _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
     // TODO: implement int, float, ... settings.
-    setting["checked"] = $('#' + setting.id).is(':checked');
+    setting["value"] = $('#' + setting.id).is(':checked');
     result.push(setting);
   });
 
