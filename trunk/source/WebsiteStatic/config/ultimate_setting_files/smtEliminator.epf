@@ -1,8 +1,0 @@
-#Mo Jan 13 12:02:44 MEZ 2020
-# Settings file for smtEliminator, Eliminator
-
-#Mo Jan 13 12:02:44 MEZ 2020
-file_export_version=3.0
-/instance/de.uni_freiburg.informatik.ultimate.source.smtparser/SmtParser\ Mode=UltimateEliminator
-/instance/de.uni_freiburg.informatik.ultimate.source.smtparser/Command\ for\ external\ solver=
-/instance/de.uni_freiburg.informatik.ultimate.source.smtparser/SMT\ solver=External_DefaultMode

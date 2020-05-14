@@ -1,14 +1,22 @@
 const _CONFIG = {
   meta: {
+	// debug_mode: if set to true, `test/result.json` will be used as a response for fetching ultimate results.
     debug_mode: false,
   },
   backend: {
+	// web_bridge_url: URL to the WebBackend API.
     web_bridge_url: 'http://127.0.0.1:8080/api'
   },
   editor: {
+	// Default content of the editor.
     init_code: '// Enter code here ...',
-    default_msg_orientation: "left"  // ["bottom" | "left"] the ultimate response messages default layout.
+    // default_msg_orientation: one of ["bottom" | "left"], 
+    //                          determines the ultimate response messages default orientation.
+    default_msg_orientation: "left"
   },
+  // code_file_extensions: Determines the file extension to be used as input for the ultimate tool.
+  //                       The key is the language of the tool in the frontend; 
+  //                       The value is the file extension to be used by ultimate.
   code_file_extensions: {
     c: '.c',
     boogie: '.bpl',
@@ -16,24 +24,62 @@ const _CONFIG = {
     automata_script: '.ats',
     smt: '.smt2'
   },
+  // tools: List of tool specific configurations. Each tool entry is a object like:
+  /**
+        id: "automizer",
+        description: "Verification of ...",
+        languages: ["Boogie", "C"],
+        logo_url: "img/tool_logo.png",
+        workers: [  // Each worker for this tool defines a language specific instance of the tool.
+            {
+                language: "c",  // Language mus be available in `code_file_extensions` settings.
+            	id: "cAutomizer",  // Unique id for this worker.
+                frontend_settings: [  // Frontend settings will be vailable to set by the user
+                  {
+                    name: "Check for memory leak in main procedure",  // The name in the settings menu.
+                id: "chck_main_mem_leak",  // Any unique id of that setting.
+                    // The Activator.PLUGIN_ID of the ultimate plugin.
+                    plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.foo",
+                key: "the key" // The key as used by the plugin PreferenceInitializer LABEL_
+                        type: "bool",  // Type [string] of this setting must be \in {'bool', }
+                    default: true,
+                    string: "/instance/de.uni_freiburg.informatik...." // To be used by the ultimate controller
+          }
+   */
+  //  * Id (`id`).
+  //  * Front-page enry (`name`, `description`, `languages`).
+  //  * Supported languages and specific settings (`workers`).  
   tools: [
     {
+      // name: A Human readable name of this tool. Used as Heading in the frontend.
       name: "ULTIMATE Automizer",
+      // id: A mandatory unique id for the tool.
       id: "automizer",
+      // description: Frontend description.
       description: "Verification of safety properties based on an automata-theoretic approach to software verification.",
+      // languages: Supported languages to be displayed in the frontend.
       languages: ["Boogie", "C"],
+      // workers: List of workers. Each worker for this tool defines a language specific toolchain.
       workers: [
         {
+          // language: A Language that must be available in `code_file_extensions` settings.
           language: "c",
+          // id: A mandatory unique id for this worker.
           id: "cAutomizer",
-          task_id: "AUTOMIZER_C",
+          // frontend_settings: A list of settings that will be available to set by the user specificly for this worker.
           frontend_settings: [
             {
+              // name: Settings name displayed in the settings menu.
               name: "Check for memory leak in main procedure",
+              // id: A mandatory unique id for this setting.
               id: "chck_main_mem_leak",
+              // plugin_id: Ultimate plugin affected by this setting.
               plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
+              // key: Setting key as used by the plugin.
               key: "Check for the main procedure if all allocated memory was freed",
+              // type: Setting type can be one of ("bool", )
               type: "bool",
+              // default: Default state for the setting.
               default: true
             },
             {

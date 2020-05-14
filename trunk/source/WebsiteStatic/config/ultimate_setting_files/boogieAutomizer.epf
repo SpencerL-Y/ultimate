@@ -1,9 +1,0 @@
-#Mo Jan 13 11:37:16 MEZ 2020
-# Settings file for boogieAutomizer, Automizer
-
-#Mo Jan 13 11:37:16 MEZ 2020
-file_export_version=3.0
-/instance/de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction/Compute\ Hoare\ Annotation\ of\ negated\ interpolant\ automaton,\ abstraction\ and\ CFG=true
-/instance/de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction/Use\ separate\ solver\ for\ trace\ checks=false
-/instance/de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder/Size\ of\ a\ code\ block=SequenceOfStatements
-/instance/UltimateCore/Generate\ benchmark\ results=false

@@ -401,19 +401,17 @@ function get_user_frontend_settings() {
 
 /**
  * Get the current settings Dict to be used as a new job for ultimate.
- * @returns {{user_settings: {}, code: string, action: string, toolchain: {task_id: *, id: *}}}
+ * @returns {{user_settings: {}, code: string, action: string, toolchain: {id: *}}}
  */
 function get_execute_settings() {
   let settings = {
     action: 'execute',
     code: _EDITOR.getSession().getValue(),
     toolchain: {
-      id: _CONFIG.context.current_worker.id,
-      task_id: _CONFIG.context.current_worker.task_id,
+      id: _CONFIG.context.current_worker.id
     },
     code_file_extension: _CONFIG.code_file_extensions[_CONFIG.context.current_worker.language],
     user_settings: "",
-    ultimate_settings_epf: _CONFIG.context.current_worker.ultimate_settings_epf,
     ultimate_toolchain_xml: (new XMLSerializer()).serializeToString(_CONFIG.context.current_worker.ultimate_toolchain_xml)
   };
 
@@ -434,13 +432,6 @@ function choose_language(language) {
     if (worker.language === language) {
       _CONFIG.context.current_worker = worker;
     }
-  });
-
-  // Load the ultimate settings file.
-  $.get('./config/ultimate_setting_files/' + _CONFIG.context.current_worker.id + '.epf', function (response) {
-    _CONFIG.context.current_worker.ultimate_settings_epf = response;
-  }).fail(function () {
-    alert("Could not fetch ultimate settings. Config error.");
   });
 
   // Load the ultimate toolchain file.
