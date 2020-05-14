@@ -3,12 +3,12 @@ The WebBackend application runs embedded jetty to provide an API for executing u
 
 # Deploy
 Goto `trunk/source/BA_MavenParentUltimate` run `mvn clean install -P materialize`.
-After a successful build, goto `trunk/source/BA_MavenParentUltimate`. The artifacts to run and configure the application are in `./target/products` (beside a copy of this README.md).
+After a successful build, goto `trunk/source/BA_WebBackend`. The artifacts to run and configure the application are in `./target/products` (beside a copy of this README.md).
 
 Now you need to configure the application.
 
-# Configuration.
-## Initial configuration.
+# Configuration
+## Initial configuration
 First make a copy of the configuration files:
 
 * Copy `web.config.properties.dist` to `web.config.properties`
@@ -23,7 +23,7 @@ Edit:
  -DWebBackend.SETTINGS_FILE=C:\path\to\your\web.config.properties
 ```
 
-Then edit `web.config.properties.dist` itself.
+Then edit `web.config.properties` itself.
 
 Mandatory:
 ```properties
@@ -31,12 +31,12 @@ Mandatory:
  SETTINGS_WHITELIST=C:\\path\\to\\your\\settings_whitelist.json
 ```
 
-## Changing configuration.
-There are 2 ways of changing configuration settings. The `web.config.properties` or via VM arguments.
+## Changing configuration
+There are 2 ways of changing configuration settings. By the `web.config.properties` file or via VM arguments.
 
-A setting `SETTING_FOO` in `web.config.properties` can be overridden via VM argument `-DWebBackend.SETTING_FOO=bar`.
+A setting "`SETTING_FOO`" in `web.config.properties` can be overridden via VM argument `-DWebBackend.SETTING_FOO=bar`.
 
-## Default configuration:
+## Default configuration
 
 	# DEBUG (bool) .............. : True increases the verbosity of the logs.
 	# PORT (int) ................ : determines the port the jetty server will be listening.
@@ -57,7 +57,7 @@ A setting `SETTING_FOO` in `web.config.properties` can be overridden via VM argu
 	FRONTEND_PATH=C:\\path\\to\\WebsiteStatic
 	FRONTEND_ROUTE=/website
 
-## Whitelist for user settings.
+## Whitelist for user settings
 User settings can be allowed per plugin and key.
 
 Create or edit the existing a `settings_whitelist.json`:
@@ -73,8 +73,10 @@ Create or edit the existing a `settings_whitelist.json`:
 
 Ensure the path to ``settings_whitelist.json` is set correctly for the `SETTINGS_WHITELIST` setting.
 
-## Serving the front-end (aka WebsiteStatic).
-### Bundeled
+## Serving the front-end (aka WebsiteStatic)
+After a build, a cleaned, ready to be served Version of the `WebsiteStatic` project can be found in `trunk/source/BA_WebBackend/target/products/WebsiteStatic`.
+
+### Bundeled with the backend
 * Set the config-parameter `SERVE_WEBSITE` to `True`. e.g.
 * Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" folder. e.g.
 * Configure the Website. See `trunk/source/WebsiteStatic/README.md` for details.
