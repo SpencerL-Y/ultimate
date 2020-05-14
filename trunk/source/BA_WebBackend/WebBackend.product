@@ -3,7 +3,6 @@
 
 <product name="WebBackend" uid="WebBackend" id="de.uni_freiburg.informatik.ultimate.web.backend.WebBackendProduct" application="de.uni_freiburg.informatik.ultimate.web.backend.WebBackend" version="0.1.25" useFeatures="false" includeLaunchers="true">
 
-
    <configIni use="default">
    </configIni>
 
@@ -12,6 +11,7 @@
       </programArgs>
       <vmArgs>-Dosgi.noShutdown=true
 -Dorg.eclipse.jetty.util.log.class=org.eclipse.jetty.util.log.StdErrLog
+-DWebBackend.SETTINGS_FILE=\path\to\web.config.properties.dist;
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>
@@ -19,18 +19,15 @@
 
    <windowImages/>
 
-
    <launcher name="WebBackend">
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
 
-
    <vm>
       <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8</windows>
    </vm>
-
 
    <plugins>
       <plugin id="com.github.jhoenicke.javacup"/>
