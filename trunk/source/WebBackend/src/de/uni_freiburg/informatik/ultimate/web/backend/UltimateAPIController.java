@@ -113,7 +113,19 @@ public class UltimateAPIController implements IUltimatePlugin, IController<RunDe
 				switch (userSetting.getString("type")) {
 				case "bool":
 					services.getPreferenceProvider(pluginId).put(
-							key, userSetting.getBoolean("checked"));
+							key, userSetting.getBoolean("value"));
+					break;
+				case "int":
+					services.getPreferenceProvider(pluginId).put(
+							key, userSetting.getInt("value"));
+					break;
+				case "string":
+					services.getPreferenceProvider(pluginId).put(
+							key, userSetting.getString("value"));
+					break;
+				case "real":
+					services.getPreferenceProvider(pluginId).put(
+							key, userSetting.getLong("value"));
 					break;
 				default:
 					mLogger.log("User setting type " + userSetting.getString("type") + " is unknown. Ignoring");

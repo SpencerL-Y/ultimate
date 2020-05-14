@@ -77,10 +77,14 @@ const _CONFIG = {
               plugin_id: "de.uni_freiburg.informatik.ultimate.plugins.generator.cacsl2boogietranslator",
               // key: Setting key as used by the plugin.
               key: "Check for the main procedure if all allocated memory was freed",
-              // type: Setting type can be one of ("bool", )
+              // type: Setting type can be one of ("bool", "int", "string", "real")
               type: "bool",
-              // default: Default state for the setting.
+              // default: Default state/value for the setting.
               default: true,
+              // range: If the type is "int" or "real", a slider will be generated in the frontend.
+              // range: [1, 12],
+              // options: If the type is "string", a selection field will be generated in the frontend.
+              // options: ["foo", "bar", "baz"]
               // visible: If true, this setting is exposed to the user.
               visible: true
             },

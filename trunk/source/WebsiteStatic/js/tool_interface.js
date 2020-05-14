@@ -391,8 +391,18 @@ function run_ultimate_task(settings) {
 function get_user_frontend_settings() {
   let result = [];
   _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
-    // TODO: implement int, float, ... settings.
-    setting["value"] = $('#' + setting.id).is(':checked');
+    // TODO: implement float, ... settings.
+    let setting_input = $('#' + setting.id);
+    switch (setting["type"]) {
+      case "int":
+      case "string":
+        setting["value"] = setting_input.val();
+        break;
+      case "bool":
+        setting["value"] = setting_input.is(':checked');
+        break;
+    }
+
     result.push(setting);
   });
 
@@ -550,7 +560,6 @@ function load_sample(source) {
 }
 
 
-
 /**
  * Set the available options for the settings dropdown menu based on the current config.
  */
@@ -559,25 +568,85 @@ function set_available_frontend_settings(language) {
   let settings_entries = '';
 
   _CONFIG.context.current_worker.frontend_settings.forEach(function (setting) {
-    if (setting.type === "bool") {
-      let hidden = 'hidden';
-      if (setting.visible === true) {
-        hidden = '';
-      }
-      settings_entries += '<div class="form-check ' + hidden + '">' +
-        '<input type="checkbox" class="form-check-input" id="' + setting.id + '" ' + (setting.default ? "checked" : "") + '>' +
-        '<label class="form-check-label" for="' + setting.id + '">' + setting.name + '</label>' +
-        '</div>'
+    switch (setting.type) {
+      case "bool":
+        settings_entries += '<div class="form-check ' + (setting.visible ? "" : "hidden") + '">' +
+          '<input type="checkbox" class="form-check-input" id="' + setting.id + '" ' + (setting.default ? "checked" : "") + '>' +
+          '<label class="form-check-label" for="' + setting.id + '">' + setting.name + '</label>' +
+          '</div>';
+        break;
+      case "int":
+        if ('range' in setting) {
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<input type="range" class="custom-range" min="' + setting.range[0] + '"  max="' + setting.range[1] + '" ' +
+            'id="' + setting.id + '" value="' + setting.default + '" >' +
+            '<span class="slider-output">Value: ' + setting.default + '</span>' +
+            '</div>';
+        } else {
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<input type="number" class="form-control" id="' + setting.id + '" value="' + setting.default + '" >' +
+            '</div>';
+        }
+        break;
+      case "real":
+        if ('range' in setting) {
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<input type="range" class="custom-range" min="' + setting.range[0] + '"  max="' + setting.range[1] + '" ' +
+            'step="0.01" id="' + setting.id + '" value="' + setting.default + '" >' +
+            '<span class="slider-output">Value: ' + setting.default + '</span>' +
+            '</div>';
+        } else {
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<input type="number" step="0.01" class="form-control" id="' + setting.id + '" value="' + setting.default + '" >' +
+            '</div>';
+        }
+        break;
+      case "string":
+        if ('options' in setting) { // Create a select field when options are given.
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<select class="form-control" id="' + setting.id + '" >';
+          for (const option of setting.options) {
+            settings_entries += '<option '
+              + (option === setting.default ? "selected=\"selected\"" : "") + ' >' + option + '</option>';
+          }
+          settings_entries += '</select></div>';
+        } else {
+          settings_entries += '<div class="form-group ' + (setting.visible ? "" : "hidden") + '">' +
+            '<label for="' + setting.id + '">' + setting.name + '</label>' +
+            '<input type="text" class="form-control" id="' + setting.id + '" value="' + setting.default + '" >' +
+            '</div>';
+        }
+        break;
+      default:
+        break;
     }
   });
 
-  if (settings_entries.length > 0) {
-    $('#navbar_settings_select_dropdown').removeClass('hidden');
-  }
+  // Show the settings
   settings_menu.html(settings_entries);
-  $('.form-check').on('click', function(e) {
+  if (settings_entries.length > 0) {
+    $('#settings_header').removeClass('hidden');
+  } else {
+    $('#settings_header').addClass('hidden');
+  }
+  $('#navbar_settings_select_dropdown').removeClass('hidden');
+
+  // Prevent setting menu from closing when clicking checkboxes or selections.
+  $('.form-check, .form-control').on('click', function(e) {
     e.stopPropagation();
   });
+
+  // Bind slider updates.
+  $('.custom-range').on('input change', function () {
+    $(this).siblings('.slider-output').html('Value: ' + $(this).val());
+  });
+
+
 }
 
 
