@@ -11,7 +11,7 @@
       </programArgs>
       <vmArgs>-Dosgi.noShutdown=true
 -Dorg.eclipse.jetty.util.log.class=org.eclipse.jetty.util.log.StdErrLog
--DWebBackend.SETTINGS_FILE=\path\to\web.config.properties.dist;
+-DWebBackend.SETTINGS_FILE=\path\to\web.config.properties.dist
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>

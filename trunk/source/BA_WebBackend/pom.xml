@@ -70,7 +70,7 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>${basedir}/target/products/Website</outputDirectory>
+									<outputDirectory>${basedir}/target/products/WebsiteStatic</outputDirectory>
 									<resources>
 										<resource>
 											<directory>${basedir}/../WebsiteStatic</directory>

@@ -1,64 +1,66 @@
 This WebBackend project is for serving the ultimate tools as a web-service.
 The WebBackend application runs embedded jetty to provide an API for executing ultimate jobs.
 
-# Overview
-
-
 # Deploy
-Goto `trunk/source/BA_WebBackend` run `mvn clean install -P materialize`. 
-After a successful build, the artifacts to run and config the application are in `./target/products` (also  a copy of this README.md).
+Goto `trunk/source/BA_MavenParentUltimate` run `mvn clean install -P materialize`.
+After a successful build, goto `trunk/source/BA_MavenParentUltimate`. The artifacts to run and configure the application are in `./target/products` (beside a copy of this README.md).
 
 Now you need to configure the application.
 
 # Configuration.
 ## Initial configuration.
-First make a copy of the config files:
+First make a copy of the configuration files:
 
-* Copy `web.config.properties.dist` to `web.config.properties.dist`
+* Copy `web.config.properties.dist` to `web.config.properties`
 * Copy `settings_whitelist.json.dist` to `settings_whitelist.json`
 
-> Note: Copy the config files to a place outside of the target directory, since they will be lost on rebuild.
+> Note: Copy the config files to a place outside of the target directory, since they will be lost on a rebuild.
 
-Now add the path to your `web.config.properties.dist` to the `WebBackend.ini` file (located in `./target/products/WebBackend/<plattform>/<arch>/`):
+Now add the path to your `web.config.properties` to the `WebBackend.ini` file (located at `./target/products/WebBackend/<plattform>/<ws>/<arch>/WebBackend.ini`):
 
 Edit:
 ```ini
--DWebBackend.SETTINGS_FILE="C:\path\to\your\web.config.properties"
-
+ -DWebBackend.SETTINGS_FILE=C:\path\to\your\web.config.properties
 ```
 
+Then edit `web.config.properties.dist` itself.
 
-See [Config.java](./src/de/uni_freiburg/informatik/ultimate/web/backend/Config.java) for implementation details.
+Mandatory:
+```properties
+ # SETTINGS_WHITELIST (string) : Path to a local user settings whitelist.
+ SETTINGS_WHITELIST=C:\\path\\to\\your\\settings_whitelist.json
+```
 
-## Changing the Port
-The default is 8080. To change it, alter the `PORT` config. e.g.
+## Changing configuration.
+There are 2 ways of changing configuration settings. The `web.config.properties` or via VM arguments.
 
-    -DWebBackend.PORT=8888
+A setting `SETTING_FOO` in `web.config.properties` can be overridden via VM argument `-DWebBackend.SETTING_FOO=bar`.
 
-## Changing the URLs
-To change the URL slug for the backend API alter the `BACKEND_ROUTE` config. The default is `/api`. e.g.
+## Default configuration:
 
-    -DWebBackend.BACKEND_ROUTE="/api"
+	# DEBUG (bool) .............. : True increases the verbosity of the logs.
+	# PORT (int) ................ : determines the port the jetty server will be listening.
+	# BACKEND_ROUTE (string) .... : The URL prefix, the API will be served at.
+	#                               E.g. /api results in http://localhost:PORT/api
+	# SETTINGS_WHITELIST (string) : Path to a local user settings whitelist.
+	DEBUG=True
+	PORT=8080
+	BACKEND_ROUTE=/api
+	SETTINGS_WHITELIST=C:\\path\\to\\settings_whitelist.json
+	
+	# SERVE_WEBSITE (bool) .... : True will also serve the Frontend.
+	#                             If set to True, FRONTEND_PATH and FRONTEND_ROUTE should be set.
+	# FRONTEND_PATH (string) .. : Path to the `WebsiteStatic` folder containing the Frontend.
+	# FRONTEND_ROUTE (string) . : The URL prefix, the FRONTEND will be served at.
+	#                             E.g. /website results in http://localhost:PORT/website
+	SERVE_WEBSITE=True
+	FRONTEND_PATH=C:\\path\\to\\WebsiteStatic
+	FRONTEND_ROUTE=/website
 
-You need to ensure, that the route matches the config.js setting of websiteStatic/config/config.js to work.
-
-To change the websites URL, change the `FRONTEND_ROUTE` setting. The default is `/website`. e.g.
-
-    -DWebBackend.FRONTEND_ROUTE="/ultimate-demo"
-
-## Serving the front-end (aka Website).
-Set the config-parameter `SERVE_WEBSITE` to `true`. e.g.
-
-    -DWebBackend.SERVE_WEBSITE=true
-
-Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" project home folder. e.g.
-
-    -DWebBackend.FRONTEND_PATH="/path/to/trunk/source/WebsiteStatic"
-
-# Whitelist for user settings.
+## Whitelist for user settings.
 User settings can be allowed per plugin and key.
 
-Create a `whitelist.json`:
+Create or edit the existing a `settings_whitelist.json`:
 
 ```json
 {
@@ -69,4 +71,14 @@ Create a `whitelist.json`:
 }
 ```
 
-Set `-DWebBackend.SETTINGS_WHITELIST="/path/to/your/whitelist.json"`
+Ensure the path to ``settings_whitelist.json` is set correctly for the `SETTINGS_WHITELIST` setting.
+
+## Serving the front-end (aka WebsiteStatic).
+### Bundeled
+* Set the config-parameter `SERVE_WEBSITE` to `True`. e.g.
+* Set the config-parameter `FRONTEND_PATH` to the absolute path of the "WebsiteStatic" folder. e.g.
+* Configure the Website. See `trunk/source/WebsiteStatic/README.md` for details.
+
+### Stand alone
+* Serve the content of `WebsiteStatic` as a static Html
+* Configure the Website. See `trunk/source/WebsiteStatic/README.md` for details.

@@ -871,6 +871,7 @@
 				<module>../BA_FeatureDependenciesDebugE4</module>
 				<module>../BA_FeatureUltimateCommon</module>
 				<module>../BA_SiteRepository</module>
+				<module>../BA_WebBackend</module>
 			</modules>
 		</profile>
 	</profiles>
