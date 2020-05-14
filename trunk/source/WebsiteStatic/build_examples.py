@@ -6,8 +6,11 @@ import shutil
 
 import os.path as osp
 
-""" This script copies all available examples for the web ui into config/code_examples. 
-Add new examples for a worker in the `tool_examples_map`: Expend the dict at the key `worker_id`. 
+""" This script
+* copies all available examples for the web ui into config/code_examples.
+* Adds the code_examples.json index file used by the frontend to determine the available examples per worker.
+
+Add new examples for a worker.id in the `tool_examples_map`
 Follow the rules already available.
 """
 
